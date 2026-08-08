@@ -5,10 +5,15 @@
  *  - Generated on the server.
  *  - Not sequential (no 1, 2, 3).
  *  - Hard to guess.
- *  - Never shown to the end user (used internally by OSAMA panel in V2).
+ *  - Used as a reference identifier in the success state (V1 UI
+ *    revision) and by the OSAMA panel in V2.
  *
- * Format: ONY-<base32 of 10 random bytes>-<base32 of unix seconds mod>
- *         e.g. ONY-A3K9Z7XQ2P-7M4F
+ * Format: OSM-<base32 of 10 random bytes>-<base32 of unix seconds mod>
+ *         e.g. OSM-A3K9Z7XQ2P-7M4F
+ *
+ * The "OSM" prefix is mandatory and consistent across the database,
+ * the success state, the OSAMA panel, and any detail view. Do not
+ * change it without coordinating with the OSAMA panel.
  *
  * The base32 alphabet is Crockford's (no I/L/O/U to avoid confusion) and
  * we strip padding. We use the Web Crypto API which is available in both
@@ -52,5 +57,5 @@ export function generateCaseId(): string {
   tBytes[3] ^= random[3] ?? 0;
   const timePart = toBase32(tBytes).slice(0, 6);
 
-  return `ONY-${randPart}-${timePart}`;
+  return `OSM-${randPart}-${timePart}`;
 }

@@ -96,7 +96,7 @@ Request:
 
 Response sukses (201):
 ```json
-{ "ok": true, "caseId": "ONY-XXXXXXXX-XXXXXX" }
+{ "ok": true, "caseId": "OSM-XXXXXXXX-XXXXXX" }
 ```
 
 > **Catatan**: `caseId` dikembalikan ke user sebagai referensi pasif
@@ -115,7 +115,7 @@ Tabel `public.aspirations` (V1, tidak berubah di V1 UI revision):
 | Kolom | Tipe | Keterangan |
 | --- | --- | --- |
 | `id` | `bigserial` PK | internal |
-| `case_id` | `text` UNIQUE | format `ONY-XXXX-YYYY` |
+| `case_id` | `text` UNIQUE | format `OSM-XXXX-YYYY` (prefix WAJIB konsisten di semua UI & panel) |
 | `topic` | `text` | 1..80 char — di-derive di server dari baris pertama pesan |
 | `message` | `text` | 1..500 char |
 | `anonymous` | `boolean` | selalu `true` di V1 (no toggle) |
