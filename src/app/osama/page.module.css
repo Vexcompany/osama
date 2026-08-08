@@ -1,0 +1,95 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.brandSub {
+  font-size: 18px;
+  font-weight: 700;
+  color: #eaf9ff;
+  letter-spacing: -0.01em;
+}
+
+.brandByline {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 230, 250, 0.55);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 20px 18px;
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow:
+    0 20px 50px -20px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #eaf9ff;
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(210, 235, 250, 0.75);
+}
+
+.configError {
+  background: rgba(60, 16, 22, 0.5);
+  border: 1px solid rgba(255, 130, 140, 0.4);
+  color: #ffd9dc;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.notPublic {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: rgba(190, 220, 235, 0.55);
+}
+
+.notPublic p {
+  margin: 0;
+}
+
+.backLink {
+  color: rgba(190, 230, 250, 0.7);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.backLink:hover {
+  color: #eaf9ff;
+}
