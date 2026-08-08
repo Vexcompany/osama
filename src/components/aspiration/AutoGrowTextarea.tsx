@@ -7,6 +7,12 @@
  * external dependency. Avoids layout shift by measuring after layout
  * via ResizeObserver.
  *
+ * Default sizes are intentionally conservative for an NGL-style feel:
+ *   - min: ~5 lines of body text (≈ 110px at 16px / 1.55 line-height)
+ *   - max: tall enough to fit a long message without internal scroll
+ *     on a typical phone, but small enough to never dominate the
+ *     viewport.
+ *
  * Why not just use the native element + CSS grid trick? It causes
  * a brief one-line height when content wraps, and on iOS it can
  * glitch while the keyboard is animating. The ResizeObserver approach
@@ -30,7 +36,7 @@ export const AutoGrowTextarea = forwardRef<
   HTMLTextAreaElement,
   AutoGrowTextareaProps
 >(function AutoGrowTextarea(
-  { minHeight = 120, maxHeight = 360, onInput, value, style, ...rest },
+  { minHeight = 110, maxHeight = 320, onChange, value, style, ...rest },
   ref,
 ) {
   const innerRef = useRef<HTMLTextAreaElement | null>(null);
@@ -65,7 +71,7 @@ export const AutoGrowTextarea = forwardRef<
     <textarea
       ref={innerRef}
       value={value}
-      onInput={onInput}
+      onChange={onChange}
       rows={3}
       style={{
         width: "100%",

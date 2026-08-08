@@ -5,35 +5,21 @@
  * The same schema is imported by the client form (for instant feedback)
  * and by the server route (for authoritative validation).
  *
- * Limits match the brief:
- *  - topic: 1..80 chars
- *  - message: 1..500 chars
+ * V1 UI revision: only the `message` field is exposed in the public
+ * form. There is no topic, no subject, no anonymous toggle. Anonymity
+ * is the only mode; the server derives a `topic` value for the legacy
+ * column so the existing database schema does not have to change.
  */
 import { z } from "zod";
 
-export const TOPIC_MAX = 80;
 export const MESSAGE_MAX = 500;
 
-// Boolean with a runtime default of `true` but a clean `boolean` type.
-// (z.boolean().default(true) narrows the output to the literal `true`
-// in newer zod versions, which breaks downstream `boolean` expectations.)
-const booleanWithDefault = (def: boolean) =>
-  z
-    .unknown()
-    .transform((v): boolean => (typeof v === "boolean" ? v : def));
-
 export const aspirationSchema = z.object({
-  topic: z
-    .string({ required_error: "Topik wajib diisi." })
-    .trim()
-    .min(1, "Topik wajib diisi.")
-    .max(TOPIC_MAX, `Topik maksimal ${TOPIC_MAX} karakter.`),
   message: z
-    .string({ required_error: "Isi aspirasi wajib diisi." })
+    .string({ required_error: "Pesan wajib diisi." })
     .trim()
-    .min(1, "Isi aspirasi wajib diisi.")
-    .max(MESSAGE_MAX, `Isi aspirasi maksimal ${MESSAGE_MAX} karakter.`),
-  anonymous: booleanWithDefault(true),
+    .min(1, "Pesan wajib diisi.")
+    .max(MESSAGE_MAX, `Pesan maksimal ${MESSAGE_MAX} karakter.`),
 });
 
 export type AspirationInput = z.infer<typeof aspirationSchema>;
@@ -41,19 +27,14 @@ export type AspirationInput = z.infer<typeof aspirationSchema>;
 /**
  * The full payload the API actually receives, including anti-spam fields
  * that the UI never renders (honeypot).
- *
- * We accept the honeypot as an arbitrary string key — the API does the
- * lookup at parse time so the schema doesn't need to know the field
- * name statically. This keeps the env var configurable.
  */
 export const aspirationSubmitSchema = z
   .object({
-    topic: aspirationSchema.shape.topic,
     message: aspirationSchema.shape.message,
-    anonymous: aspirationSchema.shape.anonymous,
   })
-  // The honeypot field is dynamic; pass-through anything else as unknown
-  // and we look it up manually after parsing.
+  // The honeypot field is dynamic; pass-through anything else and we
+  // look it up manually after parsing so the schema doesn't need to
+  // know the field name statically.
   .passthrough();
 
 export type AspirationSubmitInput = z.infer<typeof aspirationSubmitSchema>;

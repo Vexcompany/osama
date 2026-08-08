@@ -1,20 +1,13 @@
 "use client";
 
 /**
- * AspirationForm
+ * AspirationForm (V1 UI revision)
  *
- * The only interactive surface on the public page. Submits to
- *   POST /api/aspirations
- * and shows a calm success state on 2xx. Never shows the case id.
+ * NGL-style: one textarea, a counter, and a send button. Nothing else.
  *
- * UX constraints honored:
- *   - Mobile-first, single column.
- *   - Textarea auto-grows; never absurdly tall.
- *   - Character counter for topic and message.
- *   - "Kirim sebagai anonim" toggle, default ON.
- *   - Client + server validation (same zod schema on both sides).
- *   - Errors render in-place; no alerts, no layout jump.
- *   - Reduced-motion friendly.
+ * The user types a message, sees a live counter, and taps "Kirim".
+ * Anonymity is the default and only mode — there is no toggle in the UI.
+ * The form auto-grows up to a sensible max height; no layout jump.
  */
 import { useId, useState, useTransition, type FormEvent } from "react";
 
@@ -23,19 +16,11 @@ import { SuccessState } from "./SuccessState";
 import {
   aspirationSchema,
   MESSAGE_MAX,
-  TOPIC_MAX,
   type FieldErrors,
 } from "@/lib/validation/aspiration";
 import styles from "./AspirationForm.module.css";
 
 type Phase = "idle" | "submitting" | "success" | "error";
-
-interface SubmitResult {
-  ok: boolean;
-  fieldErrors?: FieldErrors;
-  formError?: string;
-  rateLimitedSeconds?: number;
-}
 
 const HONEYPOT_NAME =
   typeof process !== "undefined"
@@ -43,28 +28,24 @@ const HONEYPOT_NAME =
     : "website_url";
 
 export function AspirationForm() {
-  const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
-  const [anonymous, setAnonymous] = useState(true);
   const [honeypot, setHoneypot] = useState("");
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [lastCaseId, setLastCaseId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const topicId = useId();
   const messageId = useId();
-  const anonId = useId();
   const honeyId = useId();
 
   function resetForm() {
-    setTopic("");
     setMessage("");
-    setAnonymous(true);
     setHoneypot("");
     setFieldErrors({});
     setFormError(null);
+    setLastCaseId(null);
     setPhase("idle");
   }
 
@@ -76,16 +57,13 @@ export function AspirationForm() {
     setFormError(null);
 
     // Client-side validation first for instant feedback.
-    const parsed = aspirationSchema.safeParse({ topic, message, anonymous });
+    const parsed = aspirationSchema.safeParse({ message });
     if (!parsed.success) {
       const errs: FieldErrors = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0];
-        if (
-          (key === "topic" || key === "message" || key === "anonymous") &&
-          !errs[key]
-        ) {
-          errs[key] = issue.message;
+        if (key === "message" && !errs.message) {
+          errs.message = issue.message;
         }
       }
       setFieldErrors(errs);
@@ -95,11 +73,16 @@ export function AspirationForm() {
     setPhase("submitting");
 
     const payload = {
-      topic: parsed.data.topic,
       message: parsed.data.message,
-      anonymous: parsed.data.anonymous,
       [HONEYPOT_NAME]: honeypot,
     };
+
+    interface SubmitResult {
+      ok: boolean;
+      caseId?: string;
+      fieldErrors?: FieldErrors;
+      formError?: string;
+    }
 
     const result: SubmitResult = await new Promise((resolve) => {
       startTransition(async () => {
@@ -116,12 +99,18 @@ export function AspirationForm() {
               Number(data?.error?.retryAfterSeconds) ||
               Number(res.headers.get("Retry-After")) ||
               30;
-            resolve({ ok: false, formError: `Terlalu banyak permintaan. Coba lagi dalam ${retry} detik.`, rateLimitedSeconds: retry });
+            resolve({
+              ok: false,
+              formError: `Terlalu banyak permintaan. Coba lagi dalam ${retry} detik.`,
+            });
             return;
           }
 
           if (res.status === 201) {
-            resolve({ ok: true });
+            const data = (await res.json().catch(() => null)) as
+              | { ok: true; caseId?: string }
+              | null;
+            resolve({ ok: true, caseId: data?.caseId });
             return;
           }
 
@@ -143,6 +132,7 @@ export function AspirationForm() {
     });
 
     if (result.ok) {
+      setLastCaseId(result.caseId ?? null);
       setPhase("success");
       return;
     }
@@ -153,10 +143,9 @@ export function AspirationForm() {
   }
 
   if (phase === "success") {
-    return <SuccessState onAgain={resetForm} />;
+    return <SuccessState caseId={lastCaseId} onAgain={resetForm} />;
   }
 
-  const topicLeft = TOPIC_MAX - topic.length;
   const messageLeft = MESSAGE_MAX - message.length;
   const disabled = phase === "submitting" || isPending;
 
@@ -177,101 +166,42 @@ export function AspirationForm() {
         />
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor={topicId} className={styles.label}>
-          Topik
-        </label>
-        <input
-          id={topicId}
-          name="topic"
-          type="text"
-          className={`${styles.input} ${fieldErrors.topic ? styles.inputError : ""}`}
-          placeholder="Ringkas topik aspirasimu..."
-          maxLength={TOPIC_MAX}
-          value={topic}
-          onChange={(e) => {
-            setTopic(e.target.value);
-            if (fieldErrors.topic) {
-              setFieldErrors((f) => ({ ...f, topic: undefined }));
-            }
-          }}
-          disabled={disabled}
-          aria-invalid={Boolean(fieldErrors.topic)}
-          aria-describedby={fieldErrors.topic ? `${topicId}-err` : `${topicId}-count`}
-          autoComplete="off"
-        />
-        <div className={styles.metaRow}>
-          {fieldErrors.topic ? (
-            <span id={`${topicId}-err`} className={styles.errorText} role="alert">
-              {fieldErrors.topic}
-            </span>
-          ) : (
-            <span className={styles.hint}>Singkat dan jelas.</span>
-          )}
-          <span
-            id={`${topicId}-count`}
-            className={`${styles.counter} ${topicLeft <= 10 ? styles.counterWarn : ""}`}
-            aria-live="polite"
-          >
-            {topic.length}/{TOPIC_MAX}
-          </span>
-        </div>
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={messageId} className={styles.label}>
-          Isi Aspirasi
-        </label>
-        <AutoGrowTextarea
-          id={messageId}
-          name="message"
-          className={`${styles.textarea} ${fieldErrors.message ? styles.inputError : ""}`}
-          placeholder="Ceritakan saran, kritik, atau aspirasimu..."
-          maxLength={MESSAGE_MAX}
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-            if (fieldErrors.message) {
-              setFieldErrors((f) => ({ ...f, message: undefined }));
-            }
-          }}
-          disabled={disabled}
-          aria-invalid={Boolean(fieldErrors.message)}
-          aria-describedby={
-            fieldErrors.message ? `${messageId}-err` : `${messageId}-count`
+      <AutoGrowTextarea
+        id={messageId}
+        name="message"
+        className={`${styles.textarea} ${fieldErrors.message ? styles.inputError : ""}`}
+        placeholder="Tulis pesanmu di sini..."
+        maxLength={MESSAGE_MAX}
+        value={message}
+        onChange={(e) => {
+          setMessage(e.target.value);
+          if (fieldErrors.message) {
+            setFieldErrors((f) => ({ ...f, message: undefined }));
           }
-        />
-        <div className={styles.metaRow}>
-          {fieldErrors.message ? (
-            <span id={`${messageId}-err`} className={styles.errorText} role="alert">
-              {fieldErrors.message}
-            </span>
-          ) : (
-            <span className={styles.hint}>Maksimal {MESSAGE_MAX} karakter.</span>
-          )}
-          <span
-            id={`${messageId}-count`}
-            className={`${styles.counter} ${messageLeft <= 30 ? styles.counterWarn : ""}`}
-            aria-live="polite"
-          >
-            {message.length}/{MESSAGE_MAX}
-          </span>
-        </div>
-      </div>
+        }}
+        disabled={disabled}
+        aria-invalid={Boolean(fieldErrors.message)}
+        aria-describedby={
+          fieldErrors.message ? `${messageId}-err` : `${messageId}-count`
+        }
+      />
 
-      <label className={styles.toggle} htmlFor={anonId}>
-        <input
-          id={anonId}
-          type="checkbox"
-          checked={anonymous}
-          onChange={(e) => setAnonymous(e.target.checked)}
-          disabled={disabled}
-        />
-        <span className={styles.toggleTrack} aria-hidden="true">
-          <span className={styles.toggleThumb} />
+      <div className={styles.metaRow}>
+        {fieldErrors.message ? (
+          <span id={`${messageId}-err`} className={styles.errorText} role="alert">
+            {fieldErrors.message}
+          </span>
+        ) : (
+          <span className={styles.spacer} aria-hidden="true" />
+        )}
+        <span
+          id={`${messageId}-count`}
+          className={`${styles.counter} ${messageLeft <= 30 ? styles.counterWarn : ""}`}
+          aria-live="polite"
+        >
+          {message.length}/{MESSAGE_MAX}
         </span>
-        <span className={styles.toggleLabel}>Kirim sebagai anonim</span>
-      </label>
+      </div>
 
       {formError ? (
         <div className={styles.formError} role="alert">
@@ -282,7 +212,7 @@ export function AspirationForm() {
       <button
         type="submit"
         className={styles.submit}
-        disabled={disabled}
+        disabled={disabled || message.trim().length === 0}
         aria-busy={disabled}
       >
         {disabled ? (
@@ -291,10 +221,7 @@ export function AspirationForm() {
             <span>Mengirim…</span>
           </>
         ) : (
-          <>
-            <span>Kirim Aspirasi</span>
-            <span className={styles.submitIcon} aria-hidden="true">→</span>
-          </>
+          <span>Kirim</span>
         )}
       </button>
     </form>

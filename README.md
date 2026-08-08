@@ -89,20 +89,19 @@ supabase/
 Request:
 ```json
 {
-  "topic": "Ringkas topik aspirasimu...",
-  "message": "Ceritakan saran, kritik, atau aspirasimu...",
-  "anonymous": true,
+  "message": "Tulis pesanmu di sini...",
   "website_url": ""  // honeypot, biarkan kosong
 }
 ```
 
 Response sukses (201):
 ```json
-{ "ok": true }
+{ "ok": true, "caseId": "ONY-XXXXXXXX-XXXXXX" }
 ```
 
-> **Catatan penting**: response **tidak** mengandung `caseId`. Case ID
-> hanya digunakan internal oleh panel OSIS (V2).
+> **Catatan**: `caseId` dikembalikan ke user sebagai referensi pasif
+> (ditampilkan di success state). Tidak ada tombol copy, tidak ada
+> popup, tidak ada login.
 
 Response error:
 - `400` body tidak valid / spam (honeypot) → `{ ok: false, error: {...} }`
@@ -111,15 +110,15 @@ Response error:
 
 ## Kontrak data
 
-Tabel `public.aspirations`:
+Tabel `public.aspirations` (V1, tidak berubah di V1 UI revision):
 
 | Kolom | Tipe | Keterangan |
 | --- | --- | --- |
 | `id` | `bigserial` PK | internal |
-| `case_id` | `text` UNIQUE | internal, format `ONY-XXXX-YYYY` |
-| `topic` | `text` | 1..80 char |
+| `case_id` | `text` UNIQUE | format `ONY-XXXX-YYYY` |
+| `topic` | `text` | 1..80 char — di-derive di server dari baris pertama pesan |
 | `message` | `text` | 1..500 char |
-| `anonymous` | `boolean` | default `true` |
+| `anonymous` | `boolean` | selalu `true` di V1 (no toggle) |
 | `status` | `text` | `new` / `reviewed` / `in_progress` / `done` / `archived` |
 | `created_at` | `timestamptz` | default `now()` |
 

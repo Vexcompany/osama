@@ -5,95 +5,73 @@
   align-items: stretch;
   justify-content: center;
   padding: 0;
-  /* The canvas is fixed; the page only needs to be tall enough to host
-     the content. On phones we keep it as short as possible to avoid the
-     brief's "space kosong vertikal yang sangat panjang" complaint. */
 }
 
 .center {
   position: relative;
   z-index: 1; /* above the canvas */
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
-  /* Vertical rhythm: enough breathing room on small screens, compact
-     so the form sits above the fold on most phones. */
-  padding: max(env(safe-area-inset-top), 24px) 20px
-    max(env(safe-area-inset-bottom), 24px);
-  gap: 20px;
+  padding: max(env(safe-area-inset-top), 20px) 18px
+    max(env(safe-area-inset-bottom), 20px);
+  gap: 18px;
 }
 
-.header {
+.brandHeader {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: clamp(8px, 4vh, 36px);
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp(4px, 3vh, 24px);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  align-self: flex-start;
 }
 
 .brandMark {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .brandText {
   display: flex;
   flex-direction: column;
-  line-height: 1;
-}
-
-.brandTitle {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: rgba(190, 230, 250, 0.85);
+  line-height: 1.05;
 }
 
 .brandSub {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #eaf9ff;
   letter-spacing: -0.01em;
 }
 
-.title {
-  margin: 4px 0 0;
-  font-size: clamp(22px, 5.5vw, 28px);
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: #f3fbff;
-  text-shadow: 0 1px 16px rgba(8, 36, 50, 0.45);
-}
-
-.subtitle {
-  margin: 0;
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: rgba(205, 230, 245, 0.78);
-  max-width: 38ch;
+.brandByline {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 230, 250, 0.6);
+  margin-top: 2px;
 }
 
 .card {
-  /* The "glass" surface for the form. */
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 20px 18px;
-  border-radius: 20px;
+  gap: 14px;
+  padding: 18px 16px 16px;
+  border-radius: 22px;
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.07) 0%,
@@ -107,36 +85,54 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+/* Reserved slot for a V3 illustration / SVG. Today it shows a small
+   wordmark so the card doesn't look empty. The slot is height-bounded
+   so dropping in a larger SVG later won't push the form down. */
+.illustrationSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 4px 8px 0;
+}
+
+.placeholderLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(190, 230, 250, 0.5);
+}
+
 .footer {
   margin-top: auto;
   padding-top: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  color: rgba(190, 220, 235, 0.5);
+  font-size: 11px;
+  color: rgba(190, 220, 235, 0.4);
+  letter-spacing: 0.06em;
 }
 
 /* Tablet & desktop: a touch more breathing room. */
 @media (min-width: 720px) {
   .center {
-    max-width: 520px;
-    padding: 40px 24px 32px;
-    gap: 24px;
+    max-width: 480px;
+    padding: 32px 24px 28px;
+    gap: 22px;
   }
   .card {
-    padding: 24px 22px;
+    padding: 22px 20px 20px;
   }
-  .header {
-    margin-top: clamp(24px, 6vh, 56px);
+  .illustrationSlot {
+    min-height: 64px;
   }
 }
 
-/* iPhone with notch: extra top padding to clear the dynamic island. */
 @supports (padding: max(0px)) {
   .center {
-    padding-left: max(20px, env(safe-area-inset-left));
-    padding-right: max(20px, env(safe-area-inset-right));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
   }
 }

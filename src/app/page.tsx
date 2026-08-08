@@ -1,9 +1,12 @@
 /**
- * Public page — OSIS Ngobrol Yuk (V1).
+ * Public page — OSIS Ngobrol Yuk (V1 UI revision).
  *
- * One screen, one job: collect an aspiration. The underwater scene is a
- * fixed background layer; the content layer is a single card that fits
- * on a phone screen without scrolling on first paint.
+ * NGL-style: brand mark at the top, a calm description, then the
+ * form card. No form title, no topic, no subject. The form is the page.
+ *
+ * A reserved slot at the top of the card is left as a placeholder so
+ * V3 (Claude / Arena Direct Mode) can drop in a premium illustration
+ * without restructuring the page.
  */
 import { AspirationForm } from "@/components/aspiration/AspirationForm";
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
@@ -15,10 +18,10 @@ export default function HomePage() {
       <UnderwaterBackground />
 
       <div className={styles.center}>
-        <header className={styles.header}>
+        <header className={styles.brandHeader}>
           <div className={styles.brand} aria-label="OSIS Ngobrol Yuk">
             <span className={styles.brandMark} aria-hidden="true">
-              <svg viewBox="0 0 40 40" width="32" height="32">
+              <svg viewBox="0 0 40 40" width="28" height="28">
                 <defs>
                   <radialGradient id="lg" cx="35%" cy="30%" r="70%">
                     <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
@@ -38,25 +41,25 @@ export default function HomePage() {
               </svg>
             </span>
             <span className={styles.brandText}>
-              <span className={styles.brandTitle}>OSIS</span>
               <span className={styles.brandSub}>Ngobrol Yuk</span>
+              <span className={styles.brandByline}>oleh OSIS</span>
             </span>
           </div>
-          <h1 className={styles.title}>Sampaikan aspirasimu untuk OSIS</h1>
-          <p className={styles.subtitle}>
-            Anonim, mudah, dan langsung sampai. Tidak perlu akun, tidak perlu
-            email — cukup tulis dan kirim.
-          </p>
         </header>
 
         <section className={styles.card} aria-label="Formulir Aspirasi">
+          {/* V3 illustration slot — kept clean and content-agnostic so a
+              premium SVG can be dropped in later without touching the
+              page structure. Today: a small wordmark. */}
+          <div className={styles.illustrationSlot} aria-hidden="true">
+            <span className={styles.placeholderLabel}>OSIS · Aspirasi</span>
+          </div>
+
           <AspirationForm />
         </section>
 
         <footer className={styles.footer}>
-          <span>© {new Date().getFullYear()} OSIS</span>
-          <span aria-hidden="true">·</span>
-          <span>Ngobrol Yuk</span>
+          <span>Anonim · {new Date().getFullYear()}</span>
         </footer>
       </div>
     </main>

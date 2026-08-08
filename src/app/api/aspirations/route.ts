@@ -7,13 +7,12 @@
  *   1. Read the JSON body (small, 32kb cap configured in next.config).
  *   2. Apply per-IP rate limit.
  *   3. Honeypot check (bots fill hidden fields, real users do not).
- *   4. Zod-validate the payload (topic / message / anonymous).
+ *   4. Zod-validate the payload.
  *   5. Generate an internal Case ID.
- *   6. Persist via the aspirations repository.
- *   7. Return a minimal success response — NO caseId to the client.
- *
- * Errors are returned as a small discriminated union so the client can
- * show field-level errors without leaking server internals.
+ *   6. Persist via the aspirations repository. The legacy `topic` and
+ *      `anonymous` columns are populated server-side so we don't have
+ *      to touch the existing schema.
+ *   7. Return a minimal success response including the caseId.
  */
 import { NextRequest, NextResponse } from "next/server";
 
@@ -39,11 +38,10 @@ interface ErrorBody {
 
 interface SuccessBody {
   ok: true;
+  caseId: string;
 }
 
 function clientIp(req: NextRequest): string {
-  // Trust x-forwarded-for first (we run behind a proxy); fall back to other
-  // common headers, then "unknown" so rate limiting still works.
   const xff = req.headers.get("x-forwarded-for");
   if (xff) {
     const first = xff.split(",")[0]?.trim();
@@ -102,16 +100,25 @@ export async function POST(req: NextRequest): Promise<NextResponse<ErrorBody | S
   }
 
   // 5+6. Persist
+  let caseId: string;
   try {
-    const caseId = generateCaseId();
+    caseId = generateCaseId();
+    // The DB still has `topic` and `anonymous` from V1's schema. We
+    // derive a short topic from the first line of the message so the
+    // column is never empty, and anonymity is always on (no toggle in
+    // the V1 public UI).
+    const firstLine = result.data.message
+      .split(/\r?\n/, 1)[0]
+      ?.trim()
+      .slice(0, 80) ?? "Aspirasi";
+
     await insertAspiration({
       caseId,
-      topic: result.data.topic,
+      topic: firstLine.length > 0 ? firstLine : "Aspirasi",
       message: result.data.message,
-      anonymous: result.data.anonymous,
+      anonymous: true,
     });
   } catch (err) {
-    // Log internally; do not leak details.
     console.error("[aspirations] insert failed", err);
     return jsonError(500, {
       ok: false,
@@ -119,11 +126,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ErrorBody | S
     });
   }
 
-  // 7. Success — note: no caseId in the response.
-  return NextResponse.json<SuccessBody>({ ok: true }, { status: 201 });
+  // 7. Success — caseId is shown to the user as a reference (V1 UI revision).
+  return NextResponse.json<SuccessBody>({ ok: true, caseId }, { status: 201 });
 }
 
-// Reject other methods explicitly.
 export async function GET(): Promise<NextResponse<ErrorBody>> {
   return jsonError(405, {
     ok: false,

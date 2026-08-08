@@ -4,13 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "OSIS Ngobrol Yuk",
-  description:
-    "Sampaikan aspirasi, saran, dan kritikmu untuk OSIS secara anonim dan mudah.",
+  description: "Sampaikan aspirasimu untuk OSIS. Anonim dan mudah.",
   applicationName: "OSIS Ngobrol Yuk",
   authors: [{ name: "OSIS" }],
   formatDetection: { email: false, address: false, telephone: false },
-  // We don't index the form (defense in depth) — the case id is internal
-  // and we don't want crawlers to spam submissions.
+  // We don't index the form (defense in depth) — case ids are now
+  // user-visible so we definitely don't want crawlers indexing them.
   robots: { index: false, follow: false },
 };
 

@@ -1,16 +1,23 @@
 "use client";
 
 /**
- * SuccessState
+ * SuccessState (V1 UI revision)
  *
- * Calm, single-card success screen. No browser alert, no popup.
- * Offers a "Kirim Aspirasi Lagi" CTA that resets the form.
+ * Calm single-card success. Shows the case id as a reference for the
+ * sender. There is intentionally NO copy-to-clipboard, NO alert, NO
+ * popup — the case id is a passive reference, not an action item.
  */
 import { useEffect, useState } from "react";
 
 import styles from "./SuccessState.module.css";
 
-export function SuccessState({ onAgain }: { onAgain: () => void }) {
+export function SuccessState({
+  caseId,
+  onAgain,
+}: {
+  caseId: string | null;
+  onAgain: () => void;
+}) {
   // Trigger the entrance animation only after mount so the initial
   // paint starts from the resting state (no flash of pre-animated content).
   const [shown, setShown] = useState(false);
@@ -25,33 +32,31 @@ export function SuccessState({ onAgain }: { onAgain: () => void }) {
       role="status"
       aria-live="polite"
     >
-      <div className={styles.bubble} aria-hidden="true">
-        <svg viewBox="0 0 64 64" width="56" height="56">
-          <defs>
-            <radialGradient id="sgrad" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-              <stop offset="60%" stopColor="#8de4ff" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#1c6f8b" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <circle cx="32" cy="32" r="28" fill="url(#sgrad)" />
+      <div className={styles.checkBubble} aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="48" height="48">
           <path
-            d="M20 33 L29 42 L46 24"
+            d="M18 33 L28 43 L46 24"
             fill="none"
             stroke="#06222e"
-            strokeWidth="4.5"
+            strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       </div>
-      <h2 className={styles.title}>
-        <span className={styles.sparkle} aria-hidden="true">✨</span> Aspirasi terkirim!
-      </h2>
+
+      <h2 className={styles.title}>Aspirasi berhasil dikirim!</h2>
       <p className={styles.body}>
-        Aspirasimu berhasil dikirim. Terima kasih sudah ikut menyampaikan
-        suara untuk OSIS.
+ Terima kasih sudah menyampaikan suaramu untuk OSIS.
       </p>
+
+      {caseId ? (
+        <div className={styles.caseIdBlock}>
+          <span className={styles.caseIdLabel}>Case ID</span>
+          <span className={styles.caseIdValue}>{caseId}</span>
+        </div>
+      ) : null}
+
       <button type="button" className={styles.again} onClick={onAgain}>
         Kirim Aspirasi Lagi
       </button>
