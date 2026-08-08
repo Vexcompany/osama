@@ -1,0 +1,56 @@
+/* OSIS Ngobrol Yuk — global styles */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  /* Use a dvh fallback chain so iOS Safari's URL bar is handled. */
+  min-height: 100dvh;
+  background: #06222e; /* matches the bottom of the canvas gradient */
+  color: #eaf7ff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Text",
+    "Inter", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Prevent overscroll background flash on iOS */
+  overscroll-behavior-y: none;
+}
+
+body {
+  position: relative;
+  /* Sits above the canvas (z:0) but below modal layers if we add any. */
+  z-index: 1;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(140, 220, 255, 0.45);
+  color: #06222e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* Don't blanket-disable; the canvas and components already
+       honor this. We keep a few essential transitions. */
+  }
+}
