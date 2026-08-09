@@ -10,24 +10,37 @@
  *   - floating button
  *   - warning toasts
  *
- * Persistence: whether the user has finished the intro is stored
- * in localStorage with a version key. Bumping
- * TAKSAKA_TOUR_VERSION re-shows the intro for everyone, which is
- * intentional — the tour copy may need to be updated between
- * releases.
+ * Persistence (V3.1 PATCH):
+ *   Whether the user has already seen the current dialog
+ *   version is stored in localStorage under the key
+ *   `taksaka_dialog_version`. The value is the dialog version
+ *   STRING (e.g. "3.1"), not a boolean. Bumping
+ *   TAKSAKA_DIALOG_VERSION re-shows the intro for everyone —
+ *   returning users see the new copy when the version changes.
  *
- * V3.2: the initial overlay state is computed synchronously via
- * useState initializer + SSR guard, so the intro appears on the
- * very first paint (no flash of "no intro" before the effect
- * runs).
+ * First-paint behavior:
+ *   The initial overlay state is "none" on BOTH the server and
+ *   the first client render. We then read localStorage in a
+ *   useEffect and, if the dialog version has not been seen,
+ *   switch the overlay to "intro". This avoids the "flash of
+ *   intro on reload" failure mode: a user who has already
+ *   completed the tutorial will never see the dialog again,
+ *   not even for a single frame.
+ *
+ *   A new user pays a sub-frame delay (1 tick) before the
+ *   intro appears. That's intentional — the spec is explicit
+ *   that a returning user must not see the dialog auto-open.
+ *
+ * Tutorial exit semantics:
+ *   Skip, Close (Esc), Finish, and clicking Lanjut on the
+ *   last step all call `finishIntro`, which writes the
+ *   current dialog version to localStorage and dismisses
+ *   the overlay. The user is never forced to see the same
+ *   dialog version twice.
+ *
+ * No /api/taksaka call is made for the tutorial.
  */
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
 import { KakTaksakaButton } from "./KakTaksakaButton";
@@ -38,12 +51,12 @@ import { KakTaksakaWarning } from "./KakTaksakaWarning";
 import { sendChat } from "./kakTaksakaBridge";
 import {
   CHAT_GREETING,
-  TAKSAKA_TOUR_STORAGE_KEY,
-  TAKSAKA_TOUR_VERSION,
+  readDialogVersionSeen,
+  writeDialogVersionSeen,
 } from "./kakTaksakaRules";
 import styles from "./KakTaksaka.module.css";
 
-type Overlay = "none" | "intro" | "tour" | "chat";
+type Overlay = "intro" | "tour" | "none";
 
 interface Warning {
   id: number;
@@ -51,56 +64,32 @@ interface Warning {
   tone: "info" | "warn";
 }
 
-/**
- * Read the "tour completed" flag from localStorage. SSR-safe
- * (returns false on the server so the server-rendered HTML
- * matches the client's first render in absence of localStorage).
- */
-function readTourCompleted(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = window.localStorage.getItem(TAKSAKA_TOUR_STORAGE_KEY);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw) as { v?: number; done?: boolean };
-    return parsed.v === TAKSAKA_TOUR_VERSION && parsed.done === true;
-  } catch {
-    return false;
-  }
-}
-
-function writeTourCompleted(): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      TAKSAKA_TOUR_STORAGE_KEY,
-      JSON.stringify({ v: TAKSAKA_TOUR_VERSION, done: true }),
-    );
-  } catch {
-    // localStorage may be unavailable; safe to ignore.
-  }
-}
-
 export function KakTaksaka() {
-  // useSyncExternalStore gives us a SSR-safe, hydration-safe way
-  // to read the localStorage flag on the very first render — no
-  // flash of "no intro" before the post-mount useEffect runs.
-  const tourCompleted = useSyncExternalStore(
-    () => () => {},
-    readTourCompleted,
-    () => false,
-  );
-
-  const [overlay, setOverlay] = useState<Overlay>(() =>
-    tourCompleted ? "none" : "intro",
-  );
+  // Initial overlay state is "none" on both server and the
+  // very first client render. The mount effect below then
+  // consults localStorage and shows the intro if the user
+  // has not yet seen the current dialog version. This pattern
+  // guarantees that a returning user never sees the dialog
+  // re-appear, even for one frame.
+  const [overlay, setOverlay] = useState<Overlay>("none");
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const warnedRef = useRef(false);
 
+  // Mount: read the versioned localStorage flag once. If the
+  // stored value is the current TAKSAKA_DIALOG_VERSION, the
+  // user has already seen the dialog → stay on "none". If not
+  // (empty, missing, or stale version), show the intro.
+  useEffect(() => {
+    if (!readDialogVersionSeen()) {
+      setOverlay("intro");
+    }
+  }, []);
+
   const finishIntro = useCallback(() => {
-    writeTourCompleted();
+    writeDialogVersionSeen();
     setOverlay("none");
   }, []);
 

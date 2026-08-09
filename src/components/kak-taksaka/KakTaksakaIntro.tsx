@@ -1,30 +1,45 @@
 "use client";
 
 /**
- * Kak Taksaka intro — first visit overlay.
+ * Kak Taksaka intro — first-visit overlay.
  *
- * The brief describes an NPC-tutorial-game feel. We present a
- * single soft card with the avatar and a friendly welcome, plus a
- * primary "Mulai" button (starts the tour) and a "Lewati" link
- * (skips entirely, sets the localStorage flag).
+ * V3.1 PATCH: the dialog copy is sourced from
+ * TAKSAKA_INTRO_DIALOG in kakTaksakaRules.ts, not hardcoded
+ * inline. This keeps the wording consistent with the rest of
+ * the Kak Taksaka dialogs and makes it easy to find and edit
+ * in one place.
  *
- * V3.2: the card animates in via CSS keyframes on mount (no JS
- * state for "shown" anymore). The card is visible on the first
- * render — there's no opacity:0 → useEffect → setState → class
- * swap race. The dialog appears.
+ * Behavior contract:
+ *   - Primary "Mulai" button: starts the tour.
+ *   - Secondary "Lewati" button: dismisses and saves the
+ *     current dialog version (so the user won't see the same
+ *     intro again unless we bump the version).
+ *   - Esc on the body: dismisses and saves the version
+ *     (consistent with the tour's Esc behavior).
+ *   - No /api/taksaka call. No AI.
  *
- * Lifecycle (V3.1):
+ * Visibility:
+ *   The card is visible by default (opacity 1) and animates
+ *   in via a CSS keyframe on mount. There is no
+ *   `visibility: hidden` race. SSR renders the card markup
+ *   so the very first paint includes the dialog (if the
+ *   parent's overlay state is "intro"). The parent uses an
+ *   effect-based version check to avoid the "flash of intro
+ *   on reload" failure mode.
+ *
+ * Lifecycle:
  *   - On mount, capture the previously focused element.
- *   - On unmount, release focus from anything still inside the
- *     intro and restore focus to the original element.
- *   - `role="dialog"` WITHOUT `aria-modal="true"`. The intro is
- *     a lightweight prompt, not a true modal — the previous
- *     build's `aria-modal` left browsers in a stale modal state.
- *   - Body data attribute on mount, removed on unmount.
+ *   - On unmount, release focus from anything still inside
+ *     the intro and restore focus to the original element.
+ *   - `role="dialog"` WITHOUT `aria-modal="true"`. The intro
+ *     is a lightweight prompt, not a true modal — the
+ *     previous build's `aria-modal` left browsers in a stale
+ *     modal state.
  */
 import { useEffect, useRef } from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
+import { TAKSAKA_INTRO_DIALOG } from "./kakTaksakaRules";
 import styles from "./KakTaksakaIntro.module.css";
 
 export function KakTaksakaIntro({
@@ -68,6 +83,18 @@ export function KakTaksakaIntro({
     };
   }, []);
 
+  // Esc dismisses the intro and saves the version.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onSkip();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onSkip]);
+
   return (
     <div
       className={styles.backdrop}
@@ -78,16 +105,16 @@ export function KakTaksakaIntro({
         className={styles.card}
         role="dialog"
         aria-labelledby="kt-intro-title"
+        aria-describedby="kt-intro-body"
       >
         <div className={styles.avatar}>
           <KakTaksakaAvatar size={88} expression="happy" />
         </div>
         <h2 id="kt-intro-title" className={styles.title}>
-          Hai! Aku Kak Taksaka 👋
+          {TAKSAKA_INTRO_DIALOG.title}
         </h2>
-        <p className={styles.body}>
-          Mau aku jelaskan sekilas cara pakai Ngobrol Yuk? Bisa kok,
-          santai saja.
+        <p id="kt-intro-body" className={styles.body}>
+          {TAKSAKA_INTRO_DIALOG.message}
         </p>
         <div className={styles.actions}>
           <button

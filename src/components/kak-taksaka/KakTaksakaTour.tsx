@@ -18,8 +18,9 @@
  *   - If a target can't be found we advance to the next step rather
  *     than block the tour.
  *
- *   - All copy is hardcoded locally (TOUR_STEPS). The tour never
- *     makes an API call. /api/taksaka is reserved for the AI chat.
+ *   - All copy is hardcoded locally (TAKSAKA_TOUR_DIALOGS in
+ *     kakTaksakaRules.ts). The tour never makes an API call.
+ *     /api/taksaka is reserved for the AI chat.
  *
  *   - V3.2: dialog visibility is robust. The first render DOES
  *     measure synchronously (useLayoutEffect runs before paint),
@@ -49,7 +50,10 @@ import {
 } from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
-import { TOUR_STEPS, type TourStep } from "./kakTaksakaRules";
+import {
+  TAKSAKA_TOUR_DIALOGS as TOUR_STEPS,
+  type TourStep,
+} from "./kakTaksakaRules";
 import styles from "./KakTaksakaTour.module.css";
 
 const SPOTLIGHT_PADDING = 8;
