@@ -5,6 +5,9 @@
  *   - Fetching a fresh challenge (HttpOnly session cookie is set by
  *     the server in the same response).
  *   - Sending a chat request with the challenge + messages.
+ *   - Retrying once on 401 (challenge may have been spent, expired,
+ *     or invalidated by a previous request) by minting a brand-new
+ *     challenge on the retry.
  *
  * No provider names, no system prompt, no internal error detail is
  * ever exposed by these functions.
@@ -56,6 +59,32 @@ function invalidateChallenge(): void {
   cachedChallenge = null;
 }
 
+async function mintFreshChallenge(): Promise<string> {
+  invalidateChallenge();
+  return getChallenge();
+}
+
+async function postOnce(
+  challenge: string,
+  trimmed: ChatMessage[],
+): Promise<Response> {
+  return fetch("/api/taksaka", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    cache: "no-store",
+    body: JSON.stringify({ challenge, messages: trimmed }),
+  });
+}
+
+function readApiMessage(data: unknown, fallback: string): string {
+  if (data && typeof data === "object") {
+    const m = (data as { message?: unknown }).message;
+    if (typeof m === "string" && m.length > 0) return m;
+  }
+  return fallback;
+}
+
 export async function sendChat(
   messages: ChatMessage[],
 ): Promise<ChatResult> {
@@ -75,6 +104,7 @@ export async function sendChat(
     }
   }
 
+  // First attempt.
   let challenge: string;
   try {
     challenge = await getChallenge();
@@ -84,19 +114,26 @@ export async function sendChat(
 
   let res: Response;
   try {
-    res = await fetch("/api/taksaka", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      cache: "no-store",
-      body: JSON.stringify({ challenge, messages: trimmed }),
-    });
+    res = await postOnce(challenge, trimmed);
   } catch {
     return { ok: false, message: FALLBACK_TEXT, isFallback: true };
   }
 
+  // One automatic retry on 401. The challenge may have been spent or
+  // invalidated by something else (tab focus, page navigation, race
+  // with another tab). Minting a fresh one and retrying once is safe
+  // and avoids a false "Sesi berakhir" on a transient mismatch.
   if (res.status === 401) {
-    // Challenge expired or invalid; force a refresh on next send.
+    try {
+      challenge = await mintFreshChallenge();
+      res = await postOnce(challenge, trimmed);
+    } catch {
+      return { ok: false, message: FALLBACK_TEXT, isFallback: true };
+    }
+  }
+
+  if (res.status === 401) {
+    // Still unauthorized after retry — the session is genuinely bad.
     invalidateChallenge();
     return {
       ok: false,
@@ -104,6 +141,7 @@ export async function sendChat(
       isFallback: false,
     };
   }
+
   if (res.status === 429) {
     const data = (await res.json().catch(() => null)) as
       | { error?: { retryAfterSeconds?: number; message?: string } }
@@ -121,10 +159,8 @@ export async function sendChat(
     return { ok: false, message: FALLBACK_TEXT, isFallback: true };
   }
 
-  const data = (await res.json().catch(() => null)) as
-    | { ok?: boolean; message?: string }
-    | null;
-  const text = (data?.message ?? "").trim();
+  const data = await res.json().catch(() => null);
+  const text = readApiMessage(data, "").trim();
   if (!text) {
     return { ok: false, message: FALLBACK_TEXT, isFallback: true };
   }
