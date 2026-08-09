@@ -1,0 +1,127 @@
+/* OsamaCanvas — canvas preview + download wrapper */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── header row ───────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sectionLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(190, 220, 235, 0.55);
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #06222e;
+  background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 140ms ease, transform 140ms ease, opacity 140ms ease;
+  white-space: nowrap;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.downloadBtn:focus-visible {
+  outline: 2px solid #b6ecff;
+  outline-offset: 2px;
+}
+
+/* ── error notice ─────────────────────────────────────────────── */
+
+.errorNotice {
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(60, 16, 22, 0.5);
+  border: 1px solid rgba(255, 130, 140, 0.4);
+  color: #ffd9dc;
+  border-radius: 10px;
+  font-size: 12.5px;
+}
+
+/* ── preview container ────────────────────────────────────────── */
+
+.previewWrap {
+  position: relative;
+  width: 100%;
+  /* Maintain 3375:6000 = 9:16 aspect ratio for the container */
+  aspect-ratio: 3375 / 6000;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  transition: opacity 200ms ease;
+}
+
+/* ── loading overlay ──────────────────────────────────────────── */
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.loadingDot {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(141, 228, 255, 0.15);
+  border-top-color: #8de4ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+  font-size: 12px;
+  color: rgba(190, 220, 235, 0.6);
+  letter-spacing: 0.04em;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
