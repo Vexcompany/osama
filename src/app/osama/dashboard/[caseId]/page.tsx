@@ -3,7 +3,7 @@
  *
  * Server component. Reads the aspiration, then hands off to a small
  * client component for the status mutation UI.
- */
+ */ 
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
