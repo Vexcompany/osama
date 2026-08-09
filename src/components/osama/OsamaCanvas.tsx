@@ -8,7 +8,7 @@
  * PNG download button.
  *
  * Nothing here calls an external API or consumes AI tokens.
- */
+ */ 
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./OsamaCanvas.module.css";
