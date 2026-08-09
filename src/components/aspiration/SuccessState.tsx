@@ -51,7 +51,7 @@ export function SuccessState({
       </p>
 
       {caseId ? (
-        <div className={styles.caseIdBlock}>
+        <div className={styles.caseIdBlock} data-tour="case-id">
           <span className={styles.caseIdLabel}>Case ID</span>
           <span className={styles.caseIdValue}>{caseId}</span>
         </div>

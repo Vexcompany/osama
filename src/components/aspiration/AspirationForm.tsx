@@ -214,6 +214,7 @@ export function AspirationForm() {
         className={styles.submit}
         disabled={disabled || message.trim().length === 0}
         aria-busy={disabled}
+        data-tour="submit-button"
       >
         {disabled ? (
           <>

@@ -1,5 +1,5 @@
 /**
- * Public page — OSIS Ngobrol Yuk (V1 UI revision).
+ * Public page — OSIS Ngobrol Yuk (V1 + V3).
  *
  * NGL-style: brand mark at the top, a calm description, then the
  * form card. No form title, no topic, no subject. The form is the page.
@@ -7,8 +7,13 @@
  * A reserved slot at the top of the card is left as a placeholder so
  * V3 (Claude / Arena Direct Mode) can drop in a premium illustration
  * without restructuring the page.
+ *
+ * The KakTaksaka component overlays everything and provides the
+ * first-visit intro, tour, and chat. It does not own any data the
+ * public form needs.
  */
 import { AspirationForm } from "@/components/aspiration/AspirationForm";
+import { KakTaksaka } from "@/components/kak-taksaka/KakTaksaka";
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
 import styles from "./page.module.css";
 
@@ -18,7 +23,7 @@ export default function HomePage() {
       <UnderwaterBackground />
 
       <div className={styles.center}>
-        <header className={styles.brandHeader}>
+        <header className={styles.brandHeader} data-tour="brand">
           <div className={styles.brand} aria-label="OSIS Ngobrol Yuk">
             <span className={styles.brandMark} aria-hidden="true">
               <svg viewBox="0 0 40 40" width="28" height="28">
@@ -55,13 +60,17 @@ export default function HomePage() {
             <span className={styles.placeholderLabel}>OSIS · Aspirasi</span>
           </div>
 
-          <AspirationForm />
+          <div data-tour="message-form">
+            <AspirationForm />
+          </div>
         </section>
 
         <footer className={styles.footer}>
           <span>Anonim · {new Date().getFullYear()}</span>
         </footer>
       </div>
+
+      <KakTaksaka />
     </main>
   );
 }
