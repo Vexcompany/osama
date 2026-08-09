@@ -1,16 +1,19 @@
 /**
  * Client bridge to /api/taksaka.
  *
- * Handles:
- *   - Fetching a fresh challenge (HttpOnly session cookie is set by
- *     the server in the same response).
- *   - Sending a chat request with the challenge + messages.
- *   - Retrying once on 401 (challenge may have been spent, expired,
- *     or invalidated by a previous request) by minting a brand-new
- *     challenge on the retry.
+ * V3.2: the server is self-healing. If the user's session is
+ * missing or stale, the API route issues a fresh session and
+ * processes the request. There is no 401 to retry — every
+ * legitimate request gets a successful response (or a
+ * server-side error that we surface as the fallback message).
  *
- * No provider names, no system prompt, no internal error detail is
- * ever exposed by these functions.
+ * The browser automatically sends the HttpOnly session cookie
+ * (credentials: same-origin). The route rotates the cookie on
+ * every successful request, but the browser handles that
+ * transparently for the next call.
+ *
+ * No provider names, no system prompt, no internal error detail
+ * is ever exposed by these functions.
  */
 import {
   GENERIC_ERROR_MESSAGE,
@@ -26,54 +29,18 @@ export interface ChatMessage {
 export interface ChatResult {
   ok: boolean;
   message: string;
-  /** True if the response is the generic fallback; used by the UI to
-   *  decide whether to show a "warning" hint to the user. */
   isFallback: boolean;
 }
 
 const FALLBACK_TEXT = GENERIC_ERROR_MESSAGE.trim();
 
-let cachedChallenge: { token: string; fetchedAt: number } | null = null;
-const CHALLENGE_TTL_MS = 60_000;
-
-async function getChallenge(): Promise<string> {
-  const now = Date.now();
-  if (cachedChallenge && now - cachedChallenge.fetchedAt < CHALLENGE_TTL_MS) {
-    return cachedChallenge.token;
-  }
-  const res = await fetch("/api/taksaka/challenge", {
-    method: "GET",
-    credentials: "same-origin",
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("challenge_failed");
-  }
-  const data = (await res.json()) as { challenge?: string };
-  if (!data.challenge) throw new Error("challenge_failed");
-  cachedChallenge = { token: data.challenge, fetchedAt: now };
-  return data.challenge;
-}
-
-function invalidateChallenge(): void {
-  cachedChallenge = null;
-}
-
-async function mintFreshChallenge(): Promise<string> {
-  invalidateChallenge();
-  return getChallenge();
-}
-
-async function postOnce(
-  challenge: string,
-  trimmed: ChatMessage[],
-): Promise<Response> {
+async function postChat(trimmed: ChatMessage[]): Promise<Response> {
   return fetch("/api/taksaka", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "same-origin",
     cache: "no-store",
-    body: JSON.stringify({ challenge, messages: trimmed }),
+    body: JSON.stringify({ messages: trimmed }),
   });
 }
 
@@ -104,42 +71,11 @@ export async function sendChat(
     }
   }
 
-  // First attempt.
-  let challenge: string;
-  try {
-    challenge = await getChallenge();
-  } catch {
-    return { ok: false, message: FALLBACK_TEXT, isFallback: true };
-  }
-
   let res: Response;
   try {
-    res = await postOnce(challenge, trimmed);
+    res = await postChat(trimmed);
   } catch {
     return { ok: false, message: FALLBACK_TEXT, isFallback: true };
-  }
-
-  // One automatic retry on 401. The challenge may have been spent or
-  // invalidated by something else (tab focus, page navigation, race
-  // with another tab). Minting a fresh one and retrying once is safe
-  // and avoids a false "Sesi berakhir" on a transient mismatch.
-  if (res.status === 401) {
-    try {
-      challenge = await mintFreshChallenge();
-      res = await postOnce(challenge, trimmed);
-    } catch {
-      return { ok: false, message: FALLBACK_TEXT, isFallback: true };
-    }
-  }
-
-  if (res.status === 401) {
-    // Still unauthorized after retry — the session is genuinely bad.
-    invalidateChallenge();
-    return {
-      ok: false,
-      message: "Sesi berakhir. Coba kirim lagi yaa.",
-      isFallback: false,
-    };
   }
 
   if (res.status === 429) {

@@ -1,188 +1,124 @@
 /**
- * Anonymous session + challenge system.
+ * Anonymous session system.
  *
- * Flow:
- *   1. Client calls GET /api/taksaka/challenge.
- *   2. We issue a session cookie (HttpOnly, SameSite=Lax) containing
- *      a random session id. We return a signed, single-use challenge
- *      that references the session id.
- *   3. Client posts to /api/taksaka with the challenge in the body.
- *   4. We re-read the cookie, verify the challenge's signature, check
- *      it references the cookie's session id, and that it is not
- *      expired or already spent.
+ * V3.2 design (final): the API route is the only thing that issues
+ * and verifies session cookies. The middleware just sets a
+ * placeholder cookie so the browser has a taksaka_sid entry to
+ * send on the first request.
  *
- * Cookies never contain the challenge or any auth secret; the cookie
- * just identifies the session. The challenge itself is the bearer
- * credential, and it is signed.
+ * The token itself is a 32-byte random value stored in the
+ * in-memory sessions table. The HttpOnly cookie carries the
+ * token; the table maps token → { createdAt, lastSeenAt }.
  *
- * Everything in this module is server-only.
+ *   - First request: the placeholder cookie value "init" is sent
+ *     up. The route doesn't find it in the table, generates a
+ *     fresh token, stores it, sets the new cookie, and proceeds.
+ *   - Subsequent requests: the cookie carries the real token. The
+ *     route looks it up, updates lastSeenAt, and proceeds.
+ *   - The cookie value is also rotated on every successful
+ *     request (single-use) so a leaked cookie has at most one
+ *     request's worth of value.
+ *
+ * The in-memory table is the only place sessions live. There is
+ * no signing. The cookie is HttpOnly so scripts can't read it,
+ * and the table is server-side so a script can't fabricate a
+ * matching token.
+ *
+ * This module is server-only (Node runtime).
  */
 import "server-only";
 
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
+import { randomBytes } from "node:crypto";
 
 export const TAKSAKA_SESSION_COOKIE = "taksaka_sid";
-const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24; // 24h
+const SESSION_COOKIE_MAX_AGE = 60 * 60 * 12; // 12h
 
-const CHALLENGE_TTL_DEFAULT = 60 * 5; // 5m
-const ACTIVE_CHALLENGES_MAX = 500;
+const ACTIVE_SESSIONS_MAX = 5000;
+const PLACEHOLDER_VALUE = "init";
 
-interface ActiveChallenge {
-  jti: string;
-  sid: string;
-  exp: number;
+interface ActiveSession {
+  token: string;
+  createdAt: number;
+  lastSeenAt: number;
 }
 
-const active = new Map<string, ActiveChallenge>();
+const sessions = new Map<string, ActiveSession>();
 
-function secret(): Buffer {
-  const k = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if (k.length >= 16) return Buffer.from(k);
-  // If the env is missing, fall back to a derived value. In production
-  // this should never happen, but we still want the system to fail
-  // closed gracefully rather than crash.
-  return Buffer.from("taksaka-fallback-secret-please-set-service-role-key");
+function newToken(): string {
+  return randomBytes(32).toString("hex");
 }
 
-function b64url(input: Buffer | string): string {
-  return Buffer.from(input)
-    .toString("base64")
-    .replace(/=+$/, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-function b64urlDecode(input: string): Buffer {
-  const pad = input.length % 4 === 0 ? "" : "=".repeat(4 - (input.length % 4));
-  return Buffer.from(
-    input.replace(/-/g, "+").replace(/_/g, "/") + pad,
-    "base64",
-  );
-}
-
-function challengeTtl(): number {
-  const v = Number.parseInt(
-    process.env.TAKSAKA_CHALLENGE_TTL_SECONDS ?? `${CHALLENGE_TTL_DEFAULT}`,
-    10,
-  );
-  return Number.isFinite(v) && v > 0 ? v : CHALLENGE_TTL_DEFAULT;
-}
-
-interface SignedPayload {
-  jti: string;
-  sid: string;
-  exp: number;
-}
-
-function sign(payload: SignedPayload): string {
-  const body = b64url(JSON.stringify(payload));
-  const mac = createHmac("sha256", secret()).update(body).digest();
-  return `${body}.${b64url(mac)}`;
-}
-
-function verify(token: string): SignedPayload | null {
-  if (typeof token !== "string") return null;
-  const dot = token.indexOf(".");
-  if (dot <= 0) return null;
-  const body = token.slice(0, dot);
-  const macStr = token.slice(dot + 1);
-  const expectedMac = createHmac("sha256", secret()).update(body).digest();
-  let providedMac: Buffer;
-  try {
-    providedMac = b64urlDecode(macStr);
-  } catch {
-    return null;
+function evictStale(): void {
+  const now = Date.now();
+  const cutoff = now - SESSION_COOKIE_MAX_AGE * 1000;
+  for (const [k, v] of sessions) {
+    if (v.lastSeenAt < cutoff) sessions.delete(k);
   }
-  if (providedMac.length !== expectedMac.length) return null;
-  if (!timingSafeEqual(providedMac, expectedMac)) return null;
-  try {
-    const decoded = JSON.parse(b64urlDecode(body).toString("utf8")) as SignedPayload;
-    if (
-      typeof decoded.jti !== "string" ||
-      typeof decoded.sid !== "string" ||
-      typeof decoded.exp !== "number"
-    ) {
-      return null;
-    }
-    return decoded;
-  } catch {
-    return null;
-  }
-}
-
-function evictExpired(): void {
-  const now = Math.floor(Date.now() / 1000);
-  for (const [jti, c] of active) {
-    if (c.exp <= now) active.delete(jti);
-  }
-  // Cap total challenges (defense in depth).
-  if (active.size > ACTIVE_CHALLENGES_MAX) {
-    const oldest = [...active.entries()].sort((a, b) => a[1].exp - b[1].exp);
-    const drop = active.size - ACTIVE_CHALLENGES_MAX;
+  if (sessions.size > ACTIVE_SESSIONS_MAX) {
+    const oldest = [...sessions.entries()].sort(
+      (a, b) => a[1].lastSeenAt - b[1].lastSeenAt,
+    );
+    const drop = sessions.size - ACTIVE_SESSIONS_MAX;
     for (let i = 0; i < drop; i++) {
       const e = oldest[i];
-      if (e) active.delete(e[0]);
+      if (e) sessions.delete(e[0]);
     }
   }
 }
 
-/**
- * Issue a new session cookie and a signed challenge bound to it.
- * Returns the challenge token (the client will send it in the body).
- */
-export async function issueChallenge(): Promise<{
-  sessionId: string;
-  challenge: string;
-}> {
-  const sessionId = randomBytes(24).toString("hex");
-  const jti = randomBytes(16).toString("hex");
-  const exp = Math.floor(Date.now() / 1000) + challengeTtl();
-
-  const cookieStore = await cookies();
-  cookieStore.set(TAKSAKA_SESSION_COOKIE, sessionId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_COOKIE_MAX_AGE,
-  });
-
-  evictExpired();
-  active.set(jti, { jti, sid: sessionId, exp });
-  return { sessionId, challenge: sign({ jti, sid: sessionId, exp }) };
+export interface IssuedSession {
+  token: string;
 }
 
-export type ChallengeResult =
-  | { ok: true }
-  | { ok: false; reason: "no_cookie" | "bad_signature" | "mismatch" | "expired" | "spent" | "no_token" };
+/**
+ * Issue a brand new session token.
+ */
+export function issueNewSession(): IssuedSession {
+  evictStale();
+  const token = newToken();
+  sessions.set(token, {
+    token,
+    createdAt: Date.now(),
+    lastSeenAt: Date.now(),
+  });
+  return { token };
+}
+
+export type VerifyResult =
+  | { ok: true; token: string }
+  | { ok: false; reason: "no_cookie" | "unknown_session" };
 
 /**
- * Verify a challenge presented by the client.
+ * Verify a presented session token. On success, the session is
+ * "rotated": the old token is invalidated and a fresh one is
+ * issued and returned to the caller so they can set it on the
+ * response cookie.
  *
- * Requires BOTH the cookie (proves this is a real browser) AND a valid
- * signature AND a matching session id AND non-expired AND not yet
- * spent. The challenge is single-use; once verified, the jti is
- * removed from the active set.
+ * On failure (placeholder cookie, unknown token), no rotation.
+ * The caller is expected to issue a new session in that case.
  */
-export async function verifyChallenge(
-  token: string | null | undefined,
-): Promise<ChallengeResult> {
-  if (typeof token !== "string" || token.length === 0) {
-    return { ok: false, reason: "no_token" };
+export function verifyAndRotate(
+  provided: string | null | undefined,
+): VerifyResult & { rotatedToken?: string } {
+  if (
+    typeof provided !== "string" ||
+    provided.length === 0 ||
+    provided === PLACEHOLDER_VALUE
+  ) {
+    return { ok: false, reason: "no_cookie" };
   }
-  const cookieStore = await cookies();
-  const sid = cookieStore.get(TAKSAKA_SESSION_COOKIE)?.value;
-  if (!sid) return { ok: false, reason: "no_cookie" };
-
-  const payload = verify(token);
-  if (!payload) return { ok: false, reason: "bad_signature" };
-  if (payload.sid !== sid) return { ok: false, reason: "mismatch" };
-  if (payload.exp <= Math.floor(Date.now() / 1000)) {
-    active.delete(payload.jti);
-    return { ok: false, reason: "expired" };
+  const found = sessions.get(provided);
+  if (!found) {
+    return { ok: false, reason: "unknown_session" };
   }
-  if (!active.has(payload.jti)) return { ok: false, reason: "spent" };
-  active.delete(payload.jti); // single-use
-  return { ok: true };
+  // Rotate: invalidate the old token, issue a new one.
+  sessions.delete(provided);
+  evictStale();
+  const fresh = newToken();
+  sessions.set(fresh, {
+    token: fresh,
+    createdAt: found.createdAt,
+    lastSeenAt: Date.now(),
+  });
+  return { ok: true, token: fresh, rotatedToken: fresh };
 }
