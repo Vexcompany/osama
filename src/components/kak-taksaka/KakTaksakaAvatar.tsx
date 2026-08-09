@@ -35,7 +35,7 @@ export function KakTaksakaAvatar({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/kak-taksaka/mascot.jpg"
+      src="/kak-taksaka/mascot.png"
       alt="Kak Taksaka"
       width={size}
       height={size}
