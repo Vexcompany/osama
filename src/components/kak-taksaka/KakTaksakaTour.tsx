@@ -3,35 +3,41 @@
 /**
  * Kak Taksaka tour — spotlight walkthrough.
  *
- * Implementation notes (the brief is specific):
+ * Implementation notes:
  *   - Spotlight is dynamic: it measures the target with
- *     getBoundingClientRect() on mount, on resize, on scroll, and on
- *     a ResizeObserver against the target. NO hardcoded coordinates.
+ *     getBoundingClientRect() on mount, on resize, on scroll, and
+ *     on a ResizeObserver against the target. NO hardcoded
+ *     coordinates.
  *   - The dim layer is a single full-viewport element with a CSS
  *     box-shadow "cutout" using the target's rect. No canvas, no
  *     WebGL, no animation loop.
  *   - The dialog is positioned to one of the requested placements
  *     (top/bottom/left/right) and clamped to the viewport on small
  *     screens so it never goes off-screen.
+ *
  *   - If a target can't be found we advance to the next step rather
  *     than block the tour.
+ *
+ *   - All copy is hardcoded locally (TOUR_STEPS). The tour never
+ *     makes an API call. /api/taksaka is reserved for the AI chat.
+ *
+ *   - V3.2: dialog visibility is robust. The first render DOES
+ *     measure synchronously (useLayoutEffect runs before paint),
+ *     so the dialog is positioned correctly on the very first
+ *     frame. No `visibility: hidden` race that previously kept
+ *     the dialog invisible in some browsers.
  *
  * Lifecycle contract (V3.1):
  *   - All window/document listeners (resize, scroll, orientation,
  *     keydown) are torn down in a single unmount effect. No leaked
  *     listeners.
- *   - No body scroll lock is applied. If a future change needs one,
- *     it MUST save the previous value and restore it on unmount.
- *   - The root is a NON-modal dialog (`role="dialog"` without
- *     `aria-modal="true"`). The previous build used `aria-modal`,
- *     which leaves Safari/Chromium in a stale "modal active" mental
- *     model after the dialog unmounts and makes the page feel stuck.
  *   - On unmount we blur whatever was focused inside the tour so
  *     focus cleanly returns to the document. autoFocus on the
  *     primary button is the only intentional focus call.
- *   - The root has `aria-hidden` toggling on the rest of the page
- *     via a body attribute, so assistive tech knows when the tour
- *     is active.
+ *   - `role="dialog"` WITHOUT `aria-modal="true"`. The tour is
+ *     not a true modal — it has no real focus trap — so the
+ *     aria-modal hint would leak modal semantics into the
+ *     browser even after unmount.
  */
 import {
   useCallback,
@@ -60,6 +66,16 @@ interface RectBox {
   height: number;
 }
 
+interface Viewport {
+  w: number;
+  h: number;
+}
+
+interface DialogSize {
+  w: number;
+  h: number;
+}
+
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
@@ -77,11 +93,11 @@ function readRect(el: Element | null): RectBox | null {
   };
 }
 
-function placementFor(
-  rect: RectBox,
-  vp: { w: number; h: number },
-  dialog: { w: number; h: number },
-) {
+function readViewport(): Viewport {
+  return { w: window.innerWidth, h: window.innerHeight };
+}
+
+function placementFor(rect: RectBox, vp: Viewport, dialog: DialogSize) {
   const pad = SPOTLIGHT_PADDING;
   const gap = DIALOG_GAP;
   const targetCx = rect.left + rect.width / 2;
@@ -141,15 +157,35 @@ function placementFor(
 }
 
 export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
+  // Initial state computes the placement synchronously on the very
+  // first render (browser only) so the dialog has the correct
+  // position on the first frame. The measure useLayoutEffect
+  // below updates the same state on subsequent renders and on
+  // scroll / resize.
   const [stepIndex, setStepIndex] = useState(0);
-  const [rect, setRect] = useState<RectBox | null>(null);
-  const [viewport, setViewport] = useState({ w: 0, h: 0 });
-  const [dialogSize, setDialogSize] = useState({ w: 320, h: 180 });
+  const initialStep = TOUR_STEPS[0]!;
+  const initialMeasurement =
+    typeof window === "undefined"
+      ? { rect: null, viewport: { w: 0, h: 0 }, dialogSize: { w: 320, h: 200 } }
+      : (() => {
+          const el = document.querySelector(initialStep.target);
+          const rect = readRect(el);
+          const viewport = readViewport();
+          // Approximate initial dialog size to avoid a one-frame
+          // flicker. Real size is measured synchronously in the
+          // useLayoutEffect below.
+          const w = Math.min(360, viewport.w - 24);
+          const h = 200;
+          return { rect, viewport, dialogSize: { w, h } };
+        })();
+  const [rect, setRect] = useState<RectBox | null>(initialMeasurement.rect);
+  const [viewport, setViewport] = useState<Viewport>(initialMeasurement.viewport);
+  const [dialogSize, setDialogSize] = useState<DialogSize>(
+    initialMeasurement.dialogSize,
+  );
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const targetRef = useRef<Element | null>(null);
-  // Remember the element that was focused before the tour opened, so
-  // we can return focus to it on unmount. If the user was not
-  // focusing anything (body was the activeElement), we just blur.
+  // Remember the element that was focused before the tour opened.
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   const step: TourStep | null = useMemo(
@@ -157,10 +193,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     [stepIndex],
   );
 
-  // ── Lifecycle: mount ─────────────────────────────────────────────────
-  // Capture the previously focused element so we can restore on
-  // unmount. Also mark the body so the rest of the page can be
-  // marked aria-hidden if needed.
+  // ── Lifecycle: mount — capture focus + mark body + initial measure ──
   useEffect(() => {
     const active = document.activeElement;
     previouslyFocusedRef.current =
@@ -171,24 +204,16 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     };
   }, []);
 
-  // ── Lifecycle: unmount ───────────────────────────────────────────────
-  // This is the single, authoritative cleanup path. It runs when:
-  //   1. The orchestrator unmounts the tour (overlay !== "tour").
-  //   2. The component itself is removed from the tree.
-  // We blur any element still focused inside the tour so the browser
-  // doesn't keep focus on a button that no longer exists, and we
-  // restore focus to whatever the user was looking at before the
-  // tour opened (if it's still in the DOM).
+  // ── Lifecycle: unmount — single authoritative cleanup ──
   useEffect(() => {
     return () => {
-      // Release focus from anything still inside the tour.
       const active = document.activeElement;
-      if (active instanceof HTMLElement && active.closest("[data-taksaka-tour-root]")) {
+      if (
+        active instanceof HTMLElement &&
+        active.closest("[data-taksaka-tour-root]")
+      ) {
         active.blur();
       }
-      // Try to give focus back to where the user was. If that
-      // element is gone (e.g. the floating button was unmounted),
-      // fall back to the body.
       const prev = previouslyFocusedRef.current;
       if (prev && document.contains(prev)) {
         try {
@@ -200,7 +225,9 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     };
   }, []);
 
-  // ── Resolve target + measure ────────────────────────────────────────
+  // ── Initial measurement: useLayoutEffect runs before paint, so
+  //    the first render has correct rect / viewport / dialog
+  //    placement. No `visibility: hidden` race.
   useLayoutEffect(() => {
     if (!step) {
       setRect(null);
@@ -210,16 +237,17 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     targetRef.current = el;
     if (!el) {
       setRect(null);
+      setViewport(readViewport());
       return;
     }
+    // Synchronous first measure, before paint.
+    setRect(readRect(el));
+    setViewport(readViewport());
+
     const update = () => {
       setRect(readRect(el));
-      setViewport({
-        w: window.innerWidth,
-        h: window.innerHeight,
-      });
+      setViewport(readViewport());
     };
-    update();
 
     const ro = new ResizeObserver(() => update());
     ro.observe(el);
@@ -234,7 +262,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     };
   }, [step]);
 
-  // ── Measure dialog after mount ──────────────────────────────────────
+  // ── Measure dialog after mount so we can position correctly ──
   useLayoutEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
@@ -261,7 +289,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     setStepIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  // ── Keyboard: Enter advances, Esc ends the tour. ────────────────────
+  // ── Keyboard: Enter advances, Esc ends the tour. ──
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -281,25 +309,21 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
 
   if (!step) return null;
 
-  // ── Compute spotlight + dialog placement ────────────────────────────
-  const pad = SPOTLIGHT_PADDING;
+  // ── Compute spotlight + dialog placement for the current step ──
   let spotlightStyle: React.CSSProperties | null = null;
   let dialogStyle: React.CSSProperties = {
     left: VIEWPORT_MARGIN,
     top: VIEWPORT_MARGIN,
-    visibility: "hidden",
   };
   let side: "top" | "bottom" | "left" | "right" = "bottom";
+
   if (rect && viewport.w > 0) {
-    const spLeft = rect.left - pad;
-    const spTop = rect.top - pad;
-    const spW = rect.width + pad * 2;
-    const spH = rect.height + pad * 2;
+    const pad = SPOTLIGHT_PADDING;
     spotlightStyle = {
-      left: `${spLeft}px`,
-      top: `${spTop}px`,
-      width: `${spW}px`,
-      height: `${spH}px`,
+      left: `${rect.left - pad}px`,
+      top: `${rect.top - pad}px`,
+      width: `${rect.width + pad * 2}px`,
+      height: `${rect.height + pad * 2}px`,
       borderRadius: `${SPOTLIGHT_RADIUS}px`,
     };
     const placement = placementFor(rect, viewport, dialogSize);
@@ -307,7 +331,6 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     dialogStyle = {
       left: `${placement.dialogLeft}px`,
       top: `${placement.dialogTop}px`,
-      visibility: "visible",
     };
   }
 
@@ -321,9 +344,6 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
       aria-labelledby="kt-tour-title"
       data-taksaka-tour-root
     >
-      {/* Dim layer. pointer-events: auto so clicks on the dim do
-          not pass through to the page behind. The dialog itself
-          sits above the dim. */}
       <div className={styles.dim} aria-hidden="true" />
       {spotlightStyle ? (
         <div
@@ -351,7 +371,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
             </h2>
           </div>
         </div>
-        <p className={styles.body}>{step.body}</p>
+        <p className={styles.body}>{step.message}</p>
         <div className={styles.actions}>
           <button
             type="button"

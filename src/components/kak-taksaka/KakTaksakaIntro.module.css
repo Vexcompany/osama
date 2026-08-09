@@ -31,14 +31,23 @@
   box-shadow:
     0 24px 60px -16px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  opacity: 0;
-  transform: translateY(8px) scale(0.98);
-  transition: opacity 260ms ease, transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* V3.2: visible by default. The intro appears on the very first
+     render, not after a 16ms delay + class swap. The brief is
+     explicit that the dialog must actually be visible. */
+  opacity: 1;
+  transform: none;
+  animation: cardIn 240ms ease both;
 }
 
-.shown {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .avatar {

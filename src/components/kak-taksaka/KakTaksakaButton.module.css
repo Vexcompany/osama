@@ -66,3 +66,11 @@
     transition: none;
   }
 }
+
+/* V3.2: visually hide the button while keeping it in the layout,
+   so the [data-tour] target remains measurable by the tour's
+   spotlight. */
+.button.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}

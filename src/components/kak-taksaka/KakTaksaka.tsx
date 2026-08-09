@@ -10,15 +10,24 @@
  *   - floating button
  *   - warning toasts
  *
- * The actual rendering is split across KakTaksakaButton, KakTaksakaTour,
- * KakTaksakaChat, and KakTaksakaIntro to keep this file readable.
+ * Persistence: whether the user has finished the intro is stored
+ * in localStorage with a version key. Bumping
+ * TAKSAKA_TOUR_VERSION re-shows the intro for everyone, which is
+ * intentional — the tour copy may need to be updated between
+ * releases.
  *
- * Persistence: whether the user has finished the intro is stored in
- * localStorage with a version key. Bumping TAKSAKA_TOUR_VERSION
- * re-shows the intro for everyone, which is intentional — the tour
- * copy may need to be updated between releases.
+ * V3.2: the initial overlay state is computed synchronously via
+ * useState initializer + SSR guard, so the intro appears on the
+ * very first paint (no flash of "no intro" before the effect
+ * runs).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
 import { KakTaksakaButton } from "./KakTaksakaButton";
@@ -42,39 +51,56 @@ interface Warning {
   tone: "info" | "warn";
 }
 
+/**
+ * Read the "tour completed" flag from localStorage. SSR-safe
+ * (returns false on the server so the server-rendered HTML
+ * matches the client's first render in absence of localStorage).
+ */
+function readTourCompleted(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem(TAKSAKA_TOUR_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { v?: number; done?: boolean };
+    return parsed.v === TAKSAKA_TOUR_VERSION && parsed.done === true;
+  } catch {
+    return false;
+  }
+}
+
+function writeTourCompleted(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      TAKSAKA_TOUR_STORAGE_KEY,
+      JSON.stringify({ v: TAKSAKA_TOUR_VERSION, done: true }),
+    );
+  } catch {
+    // localStorage may be unavailable; safe to ignore.
+  }
+}
+
 export function KakTaksaka() {
-  const [overlay, setOverlay] = useState<Overlay>("none");
+  // useSyncExternalStore gives us a SSR-safe, hydration-safe way
+  // to read the localStorage flag on the very first render — no
+  // flash of "no intro" before the post-mount useEffect runs.
+  const tourCompleted = useSyncExternalStore(
+    () => () => {},
+    readTourCompleted,
+    () => false,
+  );
+
+  const [overlay, setOverlay] = useState<Overlay>(() =>
+    tourCompleted ? "none" : "intro",
+  );
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [warnings, setWarnings] = useState<Warning[]>([]);
   const warnedRef = useRef(false);
 
-  // On mount, decide whether to show the intro.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(TAKSAKA_TOUR_STORAGE_KEY);
-      const completed = raw ? (JSON.parse(raw) as { v?: number; done?: boolean }) : null;
-      if (!completed || completed.v !== TAKSAKA_TOUR_VERSION || !completed.done) {
-        setOverlay("intro");
-      }
-    } catch {
-      // localStorage may be unavailable (private mode etc). Default
-      // to showing the intro; the user can skip.
-      setOverlay("intro");
-    }
-  }, []);
-
   const finishIntro = useCallback(() => {
-    try {
-      window.localStorage.setItem(
-        TAKSAKA_TOUR_STORAGE_KEY,
-        JSON.stringify({ v: TAKSAKA_TOUR_VERSION, done: true }),
-      );
-    } catch {
-      // ignore
-    }
+    writeTourCompleted();
     setOverlay("none");
   }, []);
 
@@ -154,8 +180,6 @@ export function KakTaksaka() {
 
   return (
     <>
-      {/* Tour uses the avatar; when the tour is running, the floating
-          button is hidden so it doesn't double as a spotlight target. */}
       {overlay === "intro" ? (
         <KakTaksakaIntro
           onStart={startTour}
@@ -176,16 +200,25 @@ export function KakTaksaka() {
         />
       ) : null}
 
-      {/* Floating button — only when no overlay is active. */}
-      {overlay === "none" ? (
-        <KakTaksakaButton
-          data-tour="taksaka-button"
-          onClick={openChat}
-          aria-label="Buka chat Kak Taksaka"
-        >
-          <KakTaksakaAvatar size={56} expression="happy" />
-        </KakTaksakaButton>
-      ) : null}
+      {/*
+        The floating button is ALWAYS mounted so the
+        [data-tour="taksaka-button"] target is present in the DOM
+        on every render — including the very first visit, when the
+        intro/tour is active. The button is visually hidden during
+        the intro and tour (see KakTaksakaButton.module.css) and
+        only becomes interactive when overlay === "none".
+
+        Mounting-but-hiding avoids the "target not found" path in
+        the tour and keeps the spotlight behaviour predictable.
+      */}
+      <KakTaksakaButton
+        data-tour="taksaka-button"
+        onClick={openChat}
+        aria-label="Buka chat Kak Taksaka"
+        hidden={overlay !== "none"}
+      >
+        <KakTaksakaAvatar size={56} expression="happy" />
+      </KakTaksakaButton>
 
       <KakTaksakaWarning
         warnings={warnings}
