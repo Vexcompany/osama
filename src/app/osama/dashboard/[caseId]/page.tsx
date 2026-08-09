@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getAspirationByCaseId } from "@/lib/db/admin";
+import { OsamaCanvas } from "@/components/osama/OsamaCanvas";
 
 import { CaseActions } from "./CaseActions";
 import styles from "./case.module.css";
@@ -92,6 +93,8 @@ export default async function CaseDetailPage({
         </div>
 
         <CaseActions caseId={row.caseId} currentStatus={row.status} />
+
+        <OsamaCanvas caseId={row.caseId} message={row.message} />
       </div>
     </div>
   );
