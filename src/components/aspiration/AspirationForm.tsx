@@ -1,18 +1,33 @@
 "use client";
 
 /**
- * AspirationForm (V1 UI revision)
+ * AspirationForm (V3.3)
  *
  * NGL-style: one textarea, a counter, and a send button. Nothing else.
  *
- * The user types a message, sees a live counter, and taps "Kirim".
- * Anonymity is the default and only mode — there is no toggle in the UI.
- * The form auto-grows up to a sensible max height; no layout jump.
+ * V3.3 adds:
+ *   - Client-side moderation preview. The form runs a local
+ *     rule subset against the message and shows a hardcoded
+ *     Kak Taksaka dialog if the content is blocked. The user
+ *     can edit and resubmit.
+ *   - The server runs the full moderation pipeline too. The
+ *     client preview is a UX helper, not a security boundary.
+ *   - If the server still rejects (e.g. client preview missed a
+ *     pattern), the same hardcoded dialog flow runs.
+ *
+ * The textarea auto-grows. No layout jump. No change to V1's
+ * NGL-style copy.
  */
 import { useId, useState, useTransition, type FormEvent } from "react";
 
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { SuccessState } from "./SuccessState";
+import { KakTaksakaModerationDialog } from "@/components/kak-taksaka/KakTaksakaModerationDialog";
+import {
+  getModerationDialog,
+  type ModerationDialog,
+} from "@/components/kak-taksaka/moderationDialogs";
+import { moderateClient, type ClientCategory } from "@/components/kak-taksaka/moderationClient";
 import {
   aspirationSchema,
   MESSAGE_MAX,
@@ -35,6 +50,12 @@ export function AspirationForm() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [lastCaseId, setLastCaseId] = useState<string | null>(null);
+  // V3.3: when the moderation pipeline blocks a submission we
+  // store the category so the hardcoded dialog can render. The
+  // message itself is NOT cleared — the user can edit and
+  // resubmit.
+  const [moderationDialog, setModerationDialog] =
+    useState<ModerationDialog | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const messageId = useId();
@@ -46,7 +67,12 @@ export function AspirationForm() {
     setFieldErrors({});
     setFormError(null);
     setLastCaseId(null);
+    setModerationDialog(null);
     setPhase("idle");
+  }
+
+  function dismissModeration() {
+    setModerationDialog(null);
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -55,8 +81,16 @@ export function AspirationForm() {
 
     setFieldErrors({});
     setFormError(null);
+    setModerationDialog(null);
 
-    // Client-side validation first for instant feedback.
+    // Client-side moderation preview. NEVER a security boundary.
+    const clientMod = moderateClient(message);
+    if (clientMod.blocked && clientMod.category) {
+      setModerationDialog(getModerationDialog(clientMod.category));
+      return;
+    }
+
+    // Validation (length etc.).
     const parsed = aspirationSchema.safeParse({ message });
     if (!parsed.success) {
       const errs: FieldErrors = {};
@@ -82,6 +116,7 @@ export function AspirationForm() {
       caseId?: string;
       fieldErrors?: FieldErrors;
       formError?: string;
+      moderationCategory?: ClientCategory;
     }
 
     const result: SubmitResult = await new Promise((resolve) => {
@@ -106,12 +141,30 @@ export function AspirationForm() {
             return;
           }
 
-          if (res.status === 201) {
+          // The server returns 200 with `{ ok: false, blocked: true,
+          // category }` when the moderation pipeline blocks the
+          // submission. We translate that into the same hardcoded
+          // dialog flow the client preview uses.
+          if (res.ok) {
             const data = (await res.json().catch(() => null)) as
-              | { ok: true; caseId?: string }
+              | {
+                  ok?: boolean;
+                  caseId?: string;
+                  blocked?: boolean;
+                  category?: string;
+                }
               | null;
-            resolve({ ok: true, caseId: data?.caseId });
-            return;
+            if (data?.blocked && data?.category) {
+              resolve({
+                ok: false,
+                moderationCategory: data.category as ClientCategory,
+              });
+              return;
+            }
+            if (data?.ok) {
+              resolve({ ok: true, caseId: data.caseId });
+              return;
+            }
           }
 
           if (res.status === 400) {
@@ -134,6 +187,13 @@ export function AspirationForm() {
     if (result.ok) {
       setLastCaseId(result.caseId ?? null);
       setPhase("success");
+      return;
+    }
+
+    if (result.moderationCategory) {
+      setModerationDialog(getModerationDialog(result.moderationCategory));
+      // Don't clear the message; let the user fix it.
+      setPhase("idle");
       return;
     }
 
@@ -178,6 +238,9 @@ export function AspirationForm() {
           if (fieldErrors.message) {
             setFieldErrors((f) => ({ ...f, message: undefined }));
           }
+          // If a moderation dialog is showing and the user starts
+          // editing again, dismiss it so they can re-submit cleanly.
+          if (moderationDialog) setModerationDialog(null);
         }}
         disabled={disabled}
         aria-invalid={Boolean(fieldErrors.message)}
@@ -207,6 +270,13 @@ export function AspirationForm() {
         <div className={styles.formError} role="alert">
           {formError}
         </div>
+      ) : null}
+
+      {moderationDialog ? (
+        <KakTaksakaModerationDialog
+          dialog={moderationDialog}
+          onDismiss={dismissModeration}
+        />
       ) : null}
 
       <button

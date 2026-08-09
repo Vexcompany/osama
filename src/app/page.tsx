@@ -14,6 +14,7 @@
  */
 import { AspirationForm } from "@/components/aspiration/AspirationForm";
 import { KakTaksaka } from "@/components/kak-taksaka/KakTaksaka";
+import { RealtimeClock } from "@/components/RealtimeClock";
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
 import styles from "./page.module.css";
 
@@ -66,7 +67,7 @@ export default function HomePage() {
         </section>
 
         <footer className={styles.footer}>
-          <span>Anonim · {new Date().getFullYear()}</span>
+          <RealtimeClock />
         </footer>
       </div>
 

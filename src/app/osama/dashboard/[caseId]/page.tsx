@@ -17,11 +17,13 @@ export const dynamic = "force-dynamic";
 const CASE_ID_PATTERN = /^OSM-[A-Z0-9]{4,12}-[A-Z0-9]{4,12}$/;
 
 function formatTime(iso: string): string {
+  // Render in Asia/Jakarta so every admin sees the same time.
   const d = new Date(iso);
-  return d.toLocaleString("id-ID", {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
     dateStyle: "medium",
     timeStyle: "short",
-  });
+  }).format(d);
 }
 
 function statusLabel(s: string): string {

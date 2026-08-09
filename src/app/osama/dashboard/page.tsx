@@ -17,11 +17,15 @@ import styles from "./dashboard.module.css";
 export const dynamic = "force-dynamic";
 
 function formatTime(iso: string): string {
+  // Render the time in Asia/Jakarta regardless of the server's
+  // local timezone. The DB stores UTC ISO timestamps; we want
+  // every admin to see the same Indonesian time for the same row.
   const d = new Date(iso);
-  return d.toLocaleString("id-ID", {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
     dateStyle: "short",
     timeStyle: "short",
-  });
+  }).format(d);
 }
 
 function statusLabel(s: string): string {
