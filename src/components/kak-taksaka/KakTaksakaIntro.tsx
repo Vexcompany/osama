@@ -7,8 +7,20 @@
  * soft card with the avatar and a friendly welcome, plus a primary
  * "Mulai" button (starts the tour) and a "Lewati" link (skips
  * entirely, sets the localStorage flag).
+ *
+ * Lifecycle (V3.1):
+ *   - On mount, capture the previously focused element.
+ *   - On unmount, release focus from anything still inside the
+ *     intro and restore focus to the original element.
+ *   - `role="dialog"` WITHOUT `aria-modal="true"`. The intro is a
+ *     lightweight prompt, not a true modal — the previous build's
+ *     `aria-modal` left browsers in a stale modal state and made
+ *     the page feel stuck after the intro was dismissed.
+ *   - Marking the body with a data attribute on mount and removing
+ *     it on unmount gives external code a reliable signal that the
+ *     intro is or isn't active.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
 import styles from "./KakTaksakaIntro.module.css";
@@ -21,17 +33,54 @@ export function KakTaksakaIntro({
   onSkip: () => void;
 }) {
   const [shown, setShown] = useState(false);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  // Mount: animate in + capture focus for later restore.
   useEffect(() => {
     const id = window.setTimeout(() => setShown(true), 16);
-    return () => window.clearTimeout(id);
+    const active = document.activeElement;
+    previouslyFocusedRef.current =
+      active instanceof HTMLElement ? active : null;
+    document.body.setAttribute("data-taksaka-intro", "active");
+    return () => {
+      window.clearTimeout(id);
+      document.body.removeAttribute("data-taksaka-intro");
+    };
+  }, []);
+
+  // Unmount: single authoritative cleanup. Runs on Mulai (which
+  // mounts the tour) and on Lewati (which finishes the intro). The
+  // body attribute cleanup also runs in the mount effect, but the
+  // focus restore only runs here.
+  useEffect(() => {
+    return () => {
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active.closest("[data-taksaka-intro-root]")
+      ) {
+        active.blur();
+      }
+      const prev = previouslyFocusedRef.current;
+      if (prev && document.contains(prev)) {
+        try {
+          prev.focus({ preventScroll: true });
+        } catch {
+          // ignore
+        }
+      }
+    };
   }, []);
 
   return (
-    <div className={styles.backdrop} role="presentation">
+    <div
+      className={styles.backdrop}
+      role="presentation"
+      data-taksaka-intro-root
+    >
       <div
         className={`${styles.card} ${shown ? styles.shown : ""}`}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="kt-intro-title"
       >
         <div className={styles.avatar}>

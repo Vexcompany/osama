@@ -14,11 +14,33 @@
  * the response arrives — even if we are still on the first line.
  * The narrative never reflects the actual model state, provider,
  * or any internal detail.
+ *
+ * Lifecycle (V3.1):
+ *   - On mount, capture the previously focused element.
+ *   - On unmount, release focus from anything still inside the chat
+ *     and restore focus to the element that was active before the
+ *     chat opened. This is the single, authoritative cleanup path
+ *     and it runs whether the chat is closed via Esc, the backdrop
+ *     click, the close button, or simply because the parent
+ *     unmounted us.
+ *   - No body scroll lock. The chat is a panel that slides up over
+ *     the page; the page itself remains scrollable behind the
+ *     backdrop.
+ *   - The root uses `role="dialog"` WITHOUT `aria-modal="true"`.
+ *     The previous build used `aria-modal`, which on some browsers
+ *     (notably Safari) leaves a stale "modal active" state when the
+ *     element unmounts, making the page feel unresponsive until a
+ *     reload.
  */
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 
 import { KakTaksakaAvatar } from "./KakTaksakaAvatar";
-import { sendChat } from "./kakTaksakaBridge";
 import {
   PROCESSING_NARRATIVE,
   TAKSAKA_MAX_MESSAGE_CHARS,
@@ -44,10 +66,50 @@ export function KakTaksakaChat({
   onSend: (text: string) => void;
 }) {
   const [text, setText] = useState("");
-  const [narrative, setNarrative] = useState<string>(PROCESSING_NARRATIVE[0]?.text ?? "");
+  const [narrative, setNarrative] = useState<string>(
+    PROCESSING_NARRATIVE[0]?.text ?? "",
+  );
   const startedAtRef = useRef<number | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  // Remember what was focused before the chat opened so we can
+  // restore on unmount. If nothing was focused (body), we just blur.
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  // ── Mount: capture focus, mark body ───────────────────────────────
+  useEffect(() => {
+    const active = document.activeElement;
+    previouslyFocusedRef.current =
+      active instanceof HTMLElement ? active : null;
+    document.body.setAttribute("data-taksaka-chat", "active");
+    return () => {
+      document.body.removeAttribute("data-taksaka-chat");
+    };
+  }, []);
+
+  // ── Unmount: single authoritative cleanup path ─────────────────────
+  // Runs on every unmount: close button, Esc, backdrop click, or
+  // parent unmount. We blur anything still focused inside the chat
+  // and restore focus to wherever the user was before opening it.
+  useEffect(() => {
+    return () => {
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active.closest("[data-taksaka-chat-root]")
+      ) {
+        active.blur();
+      }
+      const prev = previouslyFocusedRef.current;
+      if (prev && document.contains(prev)) {
+        try {
+          prev.focus({ preventScroll: true });
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, []);
 
   // When busy starts, start the narrative clock.
   useEffect(() => {
@@ -119,7 +181,12 @@ export function KakTaksakaChat({
   const charsLeft = TAKSAKA_MAX_MESSAGE_CHARS - text.length;
 
   return (
-    <div className={styles.root} role="dialog" aria-modal="true" aria-label="Chat Kak Taksaka">
+    <div
+      className={styles.root}
+      role="dialog"
+      aria-label="Chat Kak Taksaka"
+      data-taksaka-chat-root
+    >
       <button
         type="button"
         className={styles.backdrop}
@@ -192,7 +259,9 @@ export function KakTaksakaChat({
           />
           <div className={styles.composerRow}>
             <span
-              className={`${styles.counter} ${charsLeft <= 200 ? styles.counterWarn : ""}`}
+              className={`${styles.counter} ${
+                charsLeft <= 200 ? styles.counterWarn : ""
+              }`}
               aria-live="polite"
             >
               {text.length}/{TAKSAKA_MAX_MESSAGE_CHARS}
