@@ -27,23 +27,38 @@ const CANVAS_H = 6000;
 // The paper area runs roughly x: 550–2870, y: 1350–4870.
 // The ruled lines on the paper are spaced ~168 px apart
 // (lines at y ≈ 1358, 1527, 1699, 1870, 2035, 2205, 2379, …).
+//
 // The template already has the labels "Case ID:" and
-// "Message:" baked in at the top of the paper (around
-// y = 1527 and y = 1699), so we ONLY draw the dynamic
-// values here. The case-id value lands on the first
-// empty ruled line, the message body lands on the very
-// next line, and multi-line messages continue on the
-// following lines. Each value sits on a real ruled line
-// so the writing lines up with the notebook lines.
-const TEXT_START_X = 680;        // left margin inside paper
-const TEXT_MAX_W   = 2050;       // max text width before wrapping
-const CASE_ID_VALUE_Y = 1870;    // first empty ruled line
-const MSG_BODY_START_Y = 2035;   // ruled line directly under the case id
+// "Message:" baked in on the first two ruled lines of
+// the paper. We do NOT redraw those labels — the template
+// owns them. Instead we draw the dynamic values NEXT TO
+// each label on the same ruled line, then continue the
+// message body on the ruled lines below.
+//
+// Label ends (measured from the template):
+//   "Case ID:"  main body ends near x ≈ 1350 (y = 1527)
+//   "Message:"  main body ends near x ≈ 1300 (y = 1699)
+//
+// So the value starts at x = 1400 (with a small visual
+// gap) and runs to the paper right edge near x = 2870,
+// giving ~1470 px of horizontal room on each label line.
+const VALUE_START_X = 1400;      // right after the template's label
+const WRAP_START_X  = 680;        // left margin for wrapped message lines
+const PAPER_RIGHT_X = 2870;
+const VALUE_MAX_W   = PAPER_RIGHT_X - VALUE_START_X;  // ≈ 1470
+const WRAP_MAX_W    = PAPER_RIGHT_X - WRAP_START_X;   // ≈ 2190
+const CASE_ID_VALUE_Y  = 1527;   // same ruled line as template "Case ID:"
+const MSG_VALUE_Y      = 1699;   // same ruled line as template "Message:"
+const WRAP_FIRST_Y     = 1870;   // first ruled line for wrapped message
 const LINE_HEIGHT      = 168;    // matches the template's ruled-line spacing
 
-// Font sizes in native canvas space (will look ~18-28 px at display size)
-const FONT_SIZE_VALUE = 160;     // case id value
-const FONT_SIZE_MSG   = 150;     // message body
+// Font sizes in native canvas space. The template's
+// baked-in labels are roughly 140–150 px tall; we use 140
+// for the inline value so it visually matches the label
+// height and still fits a 22-char Case ID in the
+// ~1470 px window after the "Case ID:" label.
+const FONT_SIZE_VALUE = 140;     // inline value (case id, first line of message)
+const FONT_SIZE_WRAP  = 150;     // wrapped continuation lines (full width available)
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -143,27 +158,71 @@ export function OsamaCanvas({ caseId, message }: Props) {
         ctx.fillStyle = CANVAS_TEXT_COLOR;
         ctx.textBaseline = "alphabetic";
 
-        // 5. Draw the case id value on the first empty line
-        //    under the template's baked-in "Case ID:" label.
-        //    The label itself is part of the template, so we
-        //    do NOT draw it again here — drawing it would
-        //    overlap the template's pre-printed label.
+        // 5. Draw the case id value NEXT TO the template's
+        //    baked-in "Case ID:" label, on the same ruled
+        //    line (y = 1527). The label ends near x ≈ 1350,
+        //    so we start the value at x = 1400 with a small
+        //    visual gap.
         ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        ctx.fillText(caseId, TEXT_START_X, CASE_ID_VALUE_Y);
+        ctx.fillText(caseId, VALUE_START_X, CASE_ID_VALUE_Y);
 
-        // 6. Draw the message body on the first empty line
-        //    under the template's baked-in "Message:" label,
-        //    then continue on subsequent ruled lines.
-        ctx.font = `${FONT_SIZE_MSG}px "HandelsonTwo", cursive`;
-        const lines = wrapText(ctx, message, TEXT_MAX_W);
-        let y = MSG_BODY_START_Y;
-        for (const line of lines) {
-          ctx.fillText(line, TEXT_START_X, y);
-          y += LINE_HEIGHT;
-          // Stop before we reach the turtle / bottom artwork area (~y 4800)
-          if (y > 4750) {
-            ctx.fillText("…", TEXT_START_X, y);
-            break;
+        // 6. Draw the message value NEXT TO the template's
+        //    baked-in "Message:" label, on the same ruled
+        //    line (y = 1699). If the message is short enough
+        //    to fit in the ~1470 px window, it all sits on
+        //    that one line. If not, the first segment is on
+        //    the label line and the rest wraps to the
+        //    ruled lines below, starting at the left margin
+        //    so it follows the notebook grid.
+        ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
+        const m = message.trim();
+        if (m.length > 0) {
+          if (ctx.measureText(m).width <= VALUE_MAX_W) {
+            // Single line — stays on the "Message:" line.
+            ctx.fillText(m, VALUE_START_X, MSG_VALUE_Y);
+          } else {
+            // Wrap: greedily pack words into the inline
+            // window for the "Message:" line. Anything that
+            // doesn't fit on that line goes onto the ruled
+            // lines below at the left margin.
+            const allWords = m.split(/\s+/);
+            let firstSeg = "";
+            let firstWordCount = 0;
+            for (let i = 0; i < allWords.length; i++) {
+              const candidate =
+                firstSeg.length === 0
+                  ? allWords[i]!
+                  : `${firstSeg} ${allWords[i]}`;
+              if (ctx.measureText(candidate).width <= VALUE_MAX_W) {
+                firstSeg = candidate;
+                firstWordCount = i + 1;
+              } else {
+                break;
+              }
+            }
+            // If the first word alone is wider than the
+            // inline window, draw it anyway and let the
+            // remaining text wrap from the next word.
+            if (firstSeg.length === 0 && allWords.length > 0) {
+              firstSeg = allWords[0]!;
+              firstWordCount = 1;
+            }
+            ctx.fillText(firstSeg, VALUE_START_X, MSG_VALUE_Y);
+
+            const remaining = allWords.slice(firstWordCount).join(" ");
+            if (remaining.length > 0) {
+              ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
+              const wrappedLines = wrapText(ctx, remaining, WRAP_MAX_W);
+              let y = WRAP_FIRST_Y;
+              for (const line of wrappedLines) {
+                ctx.fillText(line, WRAP_START_X, y);
+                y += LINE_HEIGHT;
+                if (y > 4750) {
+                  ctx.fillText("…", WRAP_START_X, y);
+                  break;
+                }
+              }
+            }
           }
         }
 

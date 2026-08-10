@@ -45,8 +45,10 @@ const TEXT_COLOR = "#484f90";
 
 // "current" = the original buggy code (label-drawing on
 // top of the template's baked-in labels)
-// "fixed"   = the patched code (values only, on the
-// template's empty ruled lines)
+// "fixed"   = the previous fix (values only, on the
+// template's empty ruled lines below the labels)
+// "inline"  = the new fix (value next to the baked-in
+// label on the same ruled line; wrap continues below)
 const LAYOUTS = {
   current: {
     caseIdValueY: 1870,
@@ -58,6 +60,7 @@ const LAYOUTS = {
     fontSizeMsg: 150,
     fontSizeLabel: 140,
     drawLabels: true,
+    inlineMode: false,
   },
   fixed: {
     caseIdValueY: 1870,
@@ -69,6 +72,23 @@ const LAYOUTS = {
     fontSizeMsg: 150,
     fontSizeLabel: 140,
     drawLabels: false,
+    inlineMode: false,
+  },
+  inline: {
+    caseIdValueY: 1527,
+    caseIdLabelY: 0,
+    msgBodyStartY: 1699,
+    msgLabelY: 0,
+    lineHeight: 168,
+    fontSizeValue: 140,
+    fontSizeMsg: 150,
+    fontSizeLabel: 140,
+    drawLabels: false,
+    inlineMode: true,
+    valueStartX: 1400,
+    paperRightX: 2870,
+    wrapStartX: 680,
+    wrapFirstY: 1870,
   },
 };
 
@@ -96,7 +116,7 @@ function wrapText(ctx, text, maxWidth) {
   return result;
 }
 
-async function render({ caseId, message, outputName, label, layout }) {
+async function render({ caseId, message, outputName, layout }) {
   const canvas = createCanvas(CANVAS_W, CANVAS_H);
   const ctx = canvas.getContext("2d");
 
@@ -106,26 +126,77 @@ async function render({ caseId, message, outputName, label, layout }) {
   ctx.fillStyle = TEXT_COLOR;
   ctx.textBaseline = "alphabetic";
 
-  if (layout.drawLabels) {
-    ctx.font = `bold ${layout.fontSizeLabel}px "HandelsonTwo"`;
-    ctx.fillText("Case ID:", TEXT_START_X, layout.caseIdLabelY);
+  if (!layout.inlineMode) {
+    if (layout.drawLabels) {
+      ctx.font = `bold ${layout.fontSizeLabel}px "HandelsonTwo"`;
+      ctx.fillText("Case ID:", TEXT_START_X, layout.caseIdLabelY);
+      ctx.font = `bold ${layout.fontSizeLabel}px "HandelsonTwo"`;
+      ctx.fillText("Message:", TEXT_START_X, layout.msgLabelY);
+    }
+    ctx.font = `bold ${layout.fontSizeValue}px "HandelsonTwo"`;
+    ctx.fillText(caseId, TEXT_START_X, layout.caseIdValueY);
+    ctx.font = `${layout.fontSizeMsg}px "HandelsonTwo"`;
+    const lines = wrapText(ctx, message, TEXT_MAX_W);
+    let y = layout.msgBodyStartY;
+    for (const line of lines) {
+      ctx.fillText(line, TEXT_START_X, y);
+      y += layout.lineHeight;
+      if (y > 4750) {
+        ctx.fillText("…", TEXT_START_X, y);
+        break;
+      }
+    }
+  } else {
+    // INLINE mode: value next to the template's baked-in
+    // label, on the same ruled line. Wrap continues on
+    // the ruled lines below at the left margin.
+    ctx.font = `bold ${layout.fontSizeValue}px "HandelsonTwo"`;
+    ctx.fillText(caseId, layout.valueStartX, layout.caseIdValueY);
 
-    ctx.font = `bold ${layout.fontSizeLabel}px "HandelsonTwo"`;
-    ctx.fillText(label, TEXT_START_X, layout.msgLabelY);
-  }
+    ctx.font = `${layout.fontSizeValue}px "HandelsonTwo"`;
+    const inlineMaxW = layout.paperRightX - layout.valueStartX;
+    const wrapMaxW = layout.paperRightX - layout.wrapStartX;
+    const m = message.trim();
+    if (m.length > 0) {
+      if (ctx.measureText(m).width <= inlineMaxW) {
+        ctx.fillText(m, layout.valueStartX, layout.msgBodyStartY);
+      } else {
+        const allWords = m.split(/\s+/);
+        let firstSeg = "";
+        let firstWordCount = 0;
+        for (let i = 0; i < allWords.length; i++) {
+          const candidate =
+            firstSeg.length === 0
+              ? allWords[i]
+              : `${firstSeg} ${allWords[i]}`;
+          if (ctx.measureText(candidate).width <= inlineMaxW) {
+            firstSeg = candidate;
+            firstWordCount = i + 1;
+          } else {
+            break;
+          }
+        }
+        if (firstSeg.length === 0 && allWords.length > 0) {
+          firstSeg = allWords[0];
+          firstWordCount = 1;
+        }
+        ctx.fillText(firstSeg, layout.valueStartX, layout.msgBodyStartY);
 
-  ctx.font = `bold ${layout.fontSizeValue}px "HandelsonTwo"`;
-  ctx.fillText(caseId, TEXT_START_X, layout.caseIdValueY);
-
-  ctx.font = `${layout.fontSizeMsg}px "HandelsonTwo"`;
-  const lines = wrapText(ctx, message, TEXT_MAX_W);
-  let y = layout.msgBodyStartY;
-  for (const line of lines) {
-    ctx.fillText(line, TEXT_START_X, y);
-    y += layout.lineHeight;
-    if (y > 4750) {
-      ctx.fillText("…", TEXT_START_X, y);
-      break;
+        const remaining = allWords.slice(firstWordCount).join(" ");
+        if (remaining.length > 0) {
+          ctx.font = `${layout.fontSizeMsg}px "HandelsonTwo"`;
+          const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
+          let y = layout.wrapFirstY;
+          for (const line of wrappedLines) {
+            ctx.fillText(line, layout.wrapStartX, y);
+            y += layout.lineHeight;
+            if (y > 4750) {
+              ctx.fillText("…", layout.wrapStartX, y);
+              break;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -143,18 +214,16 @@ if (LAYOUTS[variant]) {
     caseId: TEST_CASE_ID,
     message: TEST_MESSAGE,
     outputName: `${variant}-render`,
-    label: "Message:",
     layout: LAYOUTS[variant],
   });
 
   // Also render a multi-line case for visual verification
   // of the line-height / wrap behaviour.
   await render({
-    caseId: "OSM-07820ME75F-WA6KEW",
+    caseId: TEST_CASE_ID,
     message:
       "Halo kak, saya ingin menyampaikan aspirasi terkait kantin sekolah. Tolong lebih banyak variasi menu vegetarian ya, dan harga air mineralnya jangan naik terus. Terima kasih!",
     outputName: `${variant}-render-multiline`,
-    label: "Message:",
     layout: LAYOUTS[variant],
   });
 } else {
