@@ -29,10 +29,13 @@
  * trigger a re-display.
  *
  *   "3.0"  -> initial dialog (deprecated)
- *   "3.1"  -> current dialog copy; re-architected versioned
- *             localStorage; wording polished
+ *   "3.1"  -> re-architected versioned localStorage; wording
+ *             polished
+ *   "3.2"  -> copy aligned with the V4 polished homepage
+ *             (SMKN 5 Madiun, "Suaramu Berarti", trust badges,
+ *             glass cards, "Ruang Aspirasimu" copy)
  */
-export const TAKSAKA_DIALOG_VERSION = "3.1";
+export const TAKSAKA_DIALOG_VERSION = "3.2";
 
 /**
  * localStorage key. Namespaced under `taksaka_*` so we don't
@@ -129,9 +132,9 @@ export interface DialogCopy {
 
 export const TAKSAKA_INTRO_DIALOG: DialogCopy = {
   id: "welcome",
-  title: "Hai! Aku Kak Taksaka 👋",
+  title: "Halo! Aku Kak Taksaka 👋",
   message:
-    "Selamat datang di Ngobrol Yuk. Cerita apa yang ingin kamu sampaikan ke OSIS hari ini? Kalau mau, aku bisa jalanin tur singkat dulu biar kamu familiar. Boleh juga langsung kirim saja — terserah kamu.",
+    "Selamat datang di Osis Ngobrol Yuk, ruang aspirasi SMKN 5 Madiun. Kalau mau, aku bisa jalanin tur singkat biar kamu familiar. Boleh juga langsung kirim aspirasimu — terserah kamu.",
 };
 
 /**
@@ -151,9 +154,9 @@ export const TAKSAKA_TOUR_DIALOGS: ReadonlyArray<TourStep> = [
     id: "welcome",
     target: "[data-tour='brand']",
     placement: "bottom",
-    title: "Ini Ngobrol Yuk",
+    title: "Suaramu berarti",
     message:
-      "Singkatnya, ini tempat kamu ngobrol anonim sama OSIS. Bebas, nggak pakai nama, nggak pakai email. Nanti aku yang jagain alurnya supaya pesanmu sampai.",
+      "Ini Osis Ngobrol Yuk, ruang aspirasi OSIS SMKN 5 Madiun. Identitas kamu terjaga, pesanmu langsung sampai ke pengurus — aku cuma jagain alurnya, bukan baca isinya.",
   },
   {
     id: "aspiration",
@@ -161,7 +164,7 @@ export const TAKSAKA_TOUR_DIALOGS: ReadonlyArray<TourStep> = [
     placement: "top",
     title: "Tulis ceritamu di sini",
     message:
-      "Kolom ini buat kamu nulis apa yang ingin disampaikan. Panjang pendek terserah, bahasa santai juga boleh. Kalau belum siap, tulis aja dulu seadanya — nanti bisa disempurnakan.",
+      "Di kolom ini, tulis apa yang ingin kamu sampaikan — kritik, saran, atau cerita. Bebas, panjang pendek terserah, bahasa santai juga boleh. Kalau belum siap, tulis aja dulu seadanya.",
   },
   {
     id: "submit",
@@ -169,23 +172,23 @@ export const TAKSAKA_TOUR_DIALOGS: ReadonlyArray<TourStep> = [
     placement: "top",
     title: "Kirim lewat tombol ini",
     message:
-      "Kalau sudah oke, tekan tombol Kirim. Pesanmu langsung nyampe ke OSIS tanpa lewat aku, jadi aman dan privat. Aku cuma jagain di sini, bukan baca isinya.",
+      "Kalau sudah oke, tekan tombol Kirim Aspirasi. Pesanmu langsung sampai ke OSIS tanpa lewat aku, jadi aman dan privat. Aku cuma jagain di sini.",
   },
   {
     id: "case-id",
     target: "[data-tour='case-id']",
     placement: "top",
-    title: "Ingat ya, ada Case ID",
+    title: "Simpan Case ID-mu",
     message:
-      "Begitu terkirim, kamu dapat Case ID — semacam nomor resi. Itu pegangan kamu kalau mau nanya perkembangan ceritamu nanti. Simpan baik-baik ya, karena OSIS nggak tahu cerita ini datangnya dari siapa.",
+      "Begitu terkirim, kamu dapat Case ID — semacam nomor resi. Itu pegangan kamu kalau mau nanya perkembangan aspirasimu nanti. OSIS tidak tahu identitasmu, jadi simpan baik-baik.",
   },
   {
     id: "taksaka-button",
     target: "[data-tour='taksaka-button']",
     placement: "left",
-    title: "Kalau butuh aku, panggil saja",
+    title: "Panggil aku kapan saja",
     message:
-      "Tombol ini untuk kamu panggil aku lagi kapan saja. Bisa buat curhat, tanya cara pakai, atau apa pun yang bikin kamu bingung di sini.",
+      "Kalau butuh bantuan atau mau ngobrol, pencet tombol ini. Aku standby — bisa buat tanya cara pakai, curhat ringan, atau apa pun.",
   },
 ];
 

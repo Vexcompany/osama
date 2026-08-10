@@ -117,8 +117,8 @@ export function OsamaCanvas({ caseId, message }: Props) {
       try {
         // 1. Load assets in parallel.
         const [templateImg] = await Promise.all([
-          loadImage("/osama/canvas-template.jpg"),
-          loadFont("HandelsonTwo", "/osama/fonts/handelson-two.otf"),
+          loadImage("/kak-taksaka/osama/canvas-template.jpg"),
+          loadFont("HandelsonTwo", "/kak-taksaka/osama/fonts/handelson-two.otf"),
         ]);
 
         if (cancelled) return;
