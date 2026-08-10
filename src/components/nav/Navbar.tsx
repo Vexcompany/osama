@@ -5,8 +5,9 @@ import styles from "./Navbar.module.css";
 
 const NAV_LINKS = [
   { label: "Beranda", href: "#hero" },
+  { label: "Keunggulan", href: "#keunggulan" },
   { label: "Kirim Aspirasi", href: "#aspirasi" },
-  { label: "Tentang", href: "#tentang" },
+  { label: "Tentang OSIS", href: "#tentang" },
 ];
 
 export function Navbar() {
@@ -30,6 +31,7 @@ export function Navbar() {
             href="#hero"
             className={styles.logo}
             aria-label="Osis Ngobrol Yuk — Beranda"
+            data-tour="brand"
             onClick={(e) => handleLinkClick(e, "#hero")}
           >
             <span className={styles.logoMark} aria-hidden="true">
@@ -47,7 +49,7 @@ export function Navbar() {
               </svg>
             </span>
             <span className={styles.logoText}>
-              <span className={styles.logoMain}>Osis Ngobrol Yuk</span>
+              <span className={styles.logoMain}>Osis Ngobrol Yuk!</span>
               <span className={styles.logoSub}>SMKN 5 Madiun</span>
             </span>
           </a>

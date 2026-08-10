@@ -31,11 +31,11 @@
  *   "3.0"  -> initial dialog (deprecated)
  *   "3.1"  -> re-architected versioned localStorage; wording
  *             polished
- *   "3.2"  -> copy aligned with the V4 polished homepage
+ *   "4.0"  -> copy aligned with the V4 polished homepage
  *             (SMKN 5 Madiun, "Suaramu Berarti", trust badges,
  *             glass cards, "Ruang Aspirasimu" copy)
  */
-export const TAKSAKA_DIALOG_VERSION = "3.2";
+export const TAKSAKA_DIALOG_VERSION = "4.0";
 
 /**
  * localStorage key. Namespaced under `taksaka_*` so we don't
@@ -134,7 +134,7 @@ export const TAKSAKA_INTRO_DIALOG: DialogCopy = {
   id: "welcome",
   title: "Halo! Aku Kak Taksaka 👋",
   message:
-    "Selamat datang di Osis Ngobrol Yuk, ruang aspirasi SMKN 5 Madiun. Kalau mau, aku bisa jalanin tur singkat biar kamu familiar. Boleh juga langsung kirim aspirasimu — terserah kamu.",
+    "Selamat datang di Osis Ngobrol Yuk! Ini adalah ruang aspirasi resmi OSIS SMKN 5 Madiun. Kamu bisa kirim aspirasi, kritik, atau saran secara anonim — langsung ke pengurus OSIS. Kalau mau tur singkat, pencet Mulai. Atau langsung aja kirim aspirasimu.",
 };
 
 /**

@@ -1,11 +1,13 @@
 "use client";
 /**
- * Public page — Osis Ngobrol Yuk (V4 — Full Frontend Polish)
+ * Public page — Osis Ngobrol Yuk (V5 — Rules, Notes & Keunggulan)
  *
- * Full-page immersive underwater experience:
- *   - Fixed navbar (glass pill)
+ * Sections:
+ *   - Fixed navbar (glass pill) — now with Keunggulan + Tentang OSIS
  *   - Hero section (full-viewport, underwater composition)
- *   - Aspiration form section (glass panel, no category)
+ *   - Keunggulan section (feature highlights)
+ *   - Aspiration form section (glass panel)
+ *   - Rules & Notes section (from OSIS Ngobrol Yuk reference)
  *   - Trust footer bar
  *
  * Kak Taksaka overlay stays untouched — read-only.
@@ -106,11 +108,11 @@ export default function HomePage() {
               Kirim Aspirasi
             </a>
             <a
-              href="#tentang"
+              href="#keunggulan"
               className={styles.ctaSecondary}
               onClick={(e) => {
                 e.preventDefault();
-                document.querySelector("#tentang")?.scrollIntoView({ behavior: "smooth" });
+                document.querySelector("#keunggulan")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
               Lihat Informasi
@@ -121,7 +123,7 @@ export default function HomePage() {
           <div className={styles.trustBadges} aria-label="Keunggulan platform">
             <div className={styles.trustBadge}>
               <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
-                <path d="M10 2 L12.9 7.1 L18.5 8 L14.5 12 L15.4 17.5 L10 14.8 L4.6 17.5 L5.5 12 L1.5 8 L7.1 7.1 Z"
+                <path d="M10 2 L13 6 L18 7 L14 11 L15 16 L10 14 L5 16 L6 11 L2 7 L7 6 Z"
                   stroke="#8de4ff" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
               </svg>
               <span>Aman &amp; Anonim</span>
@@ -149,6 +151,61 @@ export default function HomePage() {
           <svg viewBox="0 0 20 20" width="20" height="20" fill="none">
             <path d="M5 7 L10 13 L15 7" stroke="rgba(140,220,255,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+        </div>
+      </section>
+
+      {/* ── Keunggulan Section ──────────────────────────────────────────── */}
+      <section id="keunggulan" className={styles.keunggulanSection} aria-label="Keunggulan">
+        <div className={styles.sectionGlow} aria-hidden="true" />
+        <div className={styles.keunggulanInner}>
+          <div className={styles.sectionLabel}>Mengapa Osis Ngobrol Yuk?</div>
+          <h2 className={styles.sectionTitle}>Platform Aspirasi yang Aman &amp; Tepat Sasaran</h2>
+          <p className={styles.sectionDesc}>
+            Dirancang khusus untuk siswa SMKN 5 Madiun agar setiap suara bisa didengar dan ditindaklanjuti oleh OSIS.
+          </p>
+          <div className={styles.keunggulanGrid}>
+            <div className={styles.keunggulanCard}>
+              <div className={styles.keunggulanIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                  <path d="M12 22 C12 22 3 17 3 11 V5 L12 2 L21 5 V11 C21 17 12 22 12 22 Z"
+                    stroke="#8de4ff" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+                  <path d="M9 12 L11 14 L15 10" stroke="#8de4ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h3 className={styles.keunggulanTitle}>Aman &amp; Anonim</h3>
+              <p className={styles.keunggulanDesc}>Identitasmu terjaga sepenuhnya. Kamu bisa bersuara tanpa khawatir siapapun tahu.</p>
+            </div>
+            <div className={styles.keunggulanCard}>
+              <div className={styles.keunggulanIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                  <path d="M22 2 L11 13 M22 2 L15 22 L11 13 L2 9 L22 2 Z"
+                    stroke="#8de4ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+              </div>
+              <h3 className={styles.keunggulanTitle}>Langsung ke OSIS</h3>
+              <p className={styles.keunggulanDesc}>Aspirasimu langsung diterima pengurus OSIS tanpa perantara yang tidak perlu.</p>
+            </div>
+            <div className={styles.keunggulanCard}>
+              <div className={styles.keunggulanIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    stroke="#8de4ff" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+                </svg>
+              </div>
+              <h3 className={styles.keunggulanTitle}>Untuk Perubahan</h3>
+              <p className={styles.keunggulanDesc}>Setiap aspirasi dipertimbangkan berdasarkan urgensi, dampak, dan kelayakannya.</p>
+            </div>
+            <div className={styles.keunggulanCard}>
+              <div className={styles.keunggulanIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                  <path d="M20 12 V22 H4 V12 M22 7 H2 V12 H22 V7 Z M12 22 V7 M12 7 C12 7 9 3 6 3 C3 3 3 7 6 7 C9 7 12 7 12 7 C12 7 15 3 18 3 C21 3 21 7 18 7 C15 7 12 7 12 7 Z"
+                    stroke="#8de4ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+              </div>
+              <h3 className={styles.keunggulanTitle}>100% Gratis</h3>
+              <p className={styles.keunggulanDesc}>Tidak ada biaya apapun. Platform ini adalah program kerja OSIS untuk seluruh siswa.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -245,6 +302,77 @@ export default function HomePage() {
             </div>
 
             <AspirationForm />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Rules & Notes Section ───────────────────────────────────────── */}
+      <section id="rules" className={styles.rulesSection} aria-label="Aturan dan Catatan">
+        <div className={styles.rulesGlow} aria-hidden="true" />
+        <div className={styles.rulesInner}>
+          <div className={styles.sectionLabel}>Baca Sebelum Mengirim</div>
+          <h2 className={styles.sectionTitle}>Rules &amp; Notes</h2>
+          <p className={styles.sectionDesc}>
+            Osis Ngobrol Yuk adalah ruang aspirasi yang aman dan bertanggung jawab. Harap perhatikan aturan berikut.
+          </p>
+
+          <div className={styles.rulesGrid}>
+            {/* Rules card */}
+            <div className={styles.rulesCard}>
+              <div className={styles.rulesCardHeader}>
+                <div className={styles.rulesCardIconWrap} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" stroke="#8de4ff" strokeWidth="1.8" fill="none" />
+                    <path d="M8 9 H16 M8 13 H16 M8 17 H12" stroke="#8de4ff" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <h3 className={styles.rulesCardTitle}>Rules!!!</h3>
+              </div>
+              <ol className={styles.rulesList}>
+                <li>Osis Ngobrol Yuk! adalah program kerja OSIS untuk menampung aspirasi siswa siswi SMKN 5 Madiun secara digital.</li>
+                <li>Gunakan Bahasa yang Sopan &amp; Santun saat akan menyampaikan aspirasi.</li>
+                <li>Dilarang menyebut nama siswa/guru secara langsung dalam konteks negatif.</li>
+                <li>Pastikan informasi/masukan yang disampaikan benar dan bisa dipertanggungjawabkan.</li>
+                <li>Aspirasi sebaiknya berdasarkan pengalaman sendiri atau yang benar-benar terjadi di lingkungan sekolah.</li>
+                <li>Dilarang membagikan data pribadi (nomor HP, alamat, dll).</li>
+                <li>Boleh tidak mencantumkan nama, tapi tetap harus jujur dan tidak menyalahgunakan anonimitas.</li>
+                <li>Hindari penggunaan huruf kapital berlebihan, tanda seru berulang (!!!), atau kata-kata emosional.</li>
+              </ol>
+            </div>
+
+            {/* Notes card */}
+            <div className={styles.rulesCard}>
+              <div className={styles.rulesCardHeader}>
+                <div className={styles.rulesCardIconWrap} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                    <path d="M12 22 C12 22 3 17 3 11 V5 L12 2 L21 5 V11 C21 17 12 22 12 22 Z"
+                      stroke="#8de4ff" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+                    <path d="M12 8 L12 12 M12 16 L12 16.5" stroke="#8de4ff" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <h3 className={styles.rulesCardTitle}>Notes!</h3>
+              </div>
+              <ol className={styles.rulesList}>
+                <li>OSIS berhak menyaring semua saran, masukan, dan aspirasi yang masuk.</li>
+                <li>Aspirasi yang melanggar aturan tidak akan diproses atau dipublikasikan.</li>
+                <li>
+                  OSIS berhak menentukan aspirasi mana yang diprioritaskan berdasarkan:
+                  <ul className={styles.rulesSubList}>
+                    <li>Tingkat urgensi</li>
+                    <li>Dampak bagi siswa</li>
+                    <li>Kelayakan untuk direalisasikan</li>
+                  </ul>
+                </li>
+                <li>
+                  OSIS berhak tidak menindaklanjuti aspirasi yang:
+                  <ul className={styles.rulesSubList}>
+                    <li>Tidak relevan</li>
+                    <li>Tidak memiliki solusi</li>
+                    <li>Tidak realistis untuk dilaksanakan</li>
+                  </ul>
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
       </section>

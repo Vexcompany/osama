@@ -660,3 +660,291 @@
     transition: none !important;
   }
 }
+
+/* ─── Shared section helpers ────────────────────────────────────────── */
+
+.sectionLabel {
+  display: inline-flex;
+  align-self: center;
+  padding: 5px 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8de4ff;
+  background: rgba(72, 79, 144, 0.2);
+  border: 1px solid rgba(72, 79, 144, 0.4);
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 800;
+  color: #eaf9ff;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.sectionDesc {
+  margin: 0 0 48px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(190, 225, 245, 0.72);
+  max-width: 52ch;
+  text-align: center;
+}
+
+/* ─── Keunggulan section ─────────────────────────────────────────────── */
+
+.keunggulanSection {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sectionGlow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 350px;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(72, 79, 144, 0.18) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.keunggulanInner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.keunggulanGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.keunggulanCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 20px;
+  border-radius: 20px;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 30, 46, 0.65) 0%,
+    rgba(4, 18, 32, 0.6) 100%
+  );
+  border: 1px solid rgba(100, 190, 230, 0.13);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 200ms ease;
+}
+
+.keunggulanCard:hover {
+  border-color: rgba(100, 190, 230, 0.24);
+  box-shadow:
+    0 18px 48px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  transform: translateY(-3px);
+}
+
+.keunggulanIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(72, 79, 144, 0.22);
+  border: 1px solid rgba(72, 79, 144, 0.38);
+  box-shadow: 0 4px 12px -4px rgba(72, 79, 144, 0.35);
+  flex-shrink: 0;
+}
+
+.keunggulanTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #eaf9ff;
+  letter-spacing: -0.01em;
+}
+
+.keunggulanDesc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(180, 220, 240, 0.68);
+}
+
+@media (max-width: 860px) {
+  .keunggulanGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .keunggulanGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .keunggulanSection {
+    padding: 60px 16px 60px;
+  }
+}
+
+/* ─── Rules & Notes section ──────────────────────────────────────────── */
+
+.rulesSection {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rulesGlow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(30, 72, 120, 0.15) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.rulesInner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rulesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+.rulesCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 26px 26px;
+  border-radius: 22px;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 30, 46, 0.70) 0%,
+    rgba(4, 18, 32, 0.65) 100%
+  );
+  border: 1px solid rgba(100, 190, 230, 0.14);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+  box-shadow:
+    0 16px 48px -14px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.rulesCard:hover {
+  border-color: rgba(100, 190, 230, 0.22);
+  box-shadow:
+    0 20px 56px -14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.rulesCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rulesCardIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(72, 79, 144, 0.22);
+  border: 1px solid rgba(72, 79, 144, 0.38);
+  flex-shrink: 0;
+}
+
+.rulesCardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #eaf9ff;
+  letter-spacing: -0.01em;
+}
+
+.rulesList {
+  margin: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: decimal;
+}
+
+.rulesList li {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: rgba(200, 232, 248, 0.82);
+  padding-left: 4px;
+}
+
+.rulesSubList {
+  margin: 6px 0 0 0;
+  padding: 0 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: disc;
+}
+
+.rulesSubList li {
+  font-size: 13px;
+  color: rgba(180, 218, 238, 0.72);
+  padding-left: 2px;
+}
+
+@media (max-width: 700px) {
+  .rulesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rulesSection {
+    padding: 60px 16px 80px;
+  }
+}
