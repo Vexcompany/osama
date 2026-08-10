@@ -25,19 +25,23 @@ const CANVAS_H = 6000;
 
 // Text layout (coordinates in native 3375×6000 space).
 // The paper area runs roughly x: 550–2870, y: 1350–4870.
-// We place the label block starting at the top-left of the paper,
-// leaving a comfortable margin so text sits clearly on the lined area
-// and does not cover the divers/turtle/fish at the edges.
+// The ruled lines on the paper are spaced ~168 px apart
+// (lines at y ≈ 1358, 1527, 1699, 1870, 2035, 2205, 2379, …).
+// The template already has the labels "Case ID:" and
+// "Message:" baked in at the top of the paper (around
+// y = 1527 and y = 1699), so we ONLY draw the dynamic
+// values here. The case-id value lands on the first
+// empty ruled line, the message body lands on the very
+// next line, and multi-line messages continue on the
+// following lines. Each value sits on a real ruled line
+// so the writing lines up with the notebook lines.
 const TEXT_START_X = 680;        // left margin inside paper
 const TEXT_MAX_W   = 2050;       // max text width before wrapping
-const CASE_ID_LABEL_Y = 1700;    // baseline y for "Case ID:" label line
-const CASE_ID_VALUE_Y = 1870;    // baseline y for the id value
-const MSG_LABEL_Y     = 2100;    // baseline y for "Pesan:" label line
-const MSG_BODY_START_Y = 2290;   // baseline y for first message line
-const LINE_HEIGHT      = 185;    // px between message lines (native space)
+const CASE_ID_VALUE_Y = 1870;    // first empty ruled line
+const MSG_BODY_START_Y = 2035;   // ruled line directly under the case id
+const LINE_HEIGHT      = 168;    // matches the template's ruled-line spacing
 
 // Font sizes in native canvas space (will look ~18-28 px at display size)
-const FONT_SIZE_LABEL = 140;     // "Case ID:" / "Pesan:" labels
 const FONT_SIZE_VALUE = 160;     // case id value
 const FONT_SIZE_MSG   = 150;     // message body
 
@@ -139,19 +143,17 @@ export function OsamaCanvas({ caseId, message }: Props) {
         ctx.fillStyle = CANVAS_TEXT_COLOR;
         ctx.textBaseline = "alphabetic";
 
-        // 5. Draw "Case ID:" label.
-        ctx.font = `bold ${FONT_SIZE_LABEL}px "HandelsonTwo", cursive`;
-        ctx.fillText("Case ID:", TEXT_START_X, CASE_ID_LABEL_Y);
-
-        // 6. Draw case id value.
+        // 5. Draw the case id value on the first empty line
+        //    under the template's baked-in "Case ID:" label.
+        //    The label itself is part of the template, so we
+        //    do NOT draw it again here — drawing it would
+        //    overlap the template's pre-printed label.
         ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
         ctx.fillText(caseId, TEXT_START_X, CASE_ID_VALUE_Y);
 
-        // 7. Draw "Pesan:" label.
-        ctx.font = `bold ${FONT_SIZE_LABEL}px "HandelsonTwo", cursive`;
-        ctx.fillText("Pesan:", TEXT_START_X, MSG_LABEL_Y);
-
-        // 8. Draw wrapped message.
+        // 6. Draw the message body on the first empty line
+        //    under the template's baked-in "Message:" label,
+        //    then continue on subsequent ruled lines.
         ctx.font = `${FONT_SIZE_MSG}px "HandelsonTwo", cursive`;
         const lines = wrapText(ctx, message, TEXT_MAX_W);
         let y = MSG_BODY_START_Y;
