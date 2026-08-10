@@ -1,138 +1,662 @@
+/* ═══════════════════════════════════════════════════════════════
+   Osis Ngobrol Yuk — V4 Premium Underwater Frontend
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Root ─────────────────────────────────────────────────────────── */
+
 .main {
   position: relative;
   min-height: 100dvh;
   display: flex;
-  align-items: stretch;
-  justify-content: center;
-  padding: 0;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-.center {
+/* ─── Hero ─────────────────────────────────────────────────────────── */
+
+.hero {
   position: relative;
-  z-index: 1; /* above the canvas */
-  width: 100%;
-  max-width: 440px;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 20px;
+}
+
+/* CSS light rays */
+.lightRays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ray {
+  position: absolute;
+  top: -10%;
+  width: 80px;
+  height: 130%;
+  background: linear-gradient(180deg,
+    rgba(140, 220, 255, 0.07) 0%,
+    rgba(80, 180, 240, 0.04) 40%,
+    transparent 100%
+  );
+  transform-origin: top center;
+  animation: rayDrift 12s ease-in-out infinite alternate;
+  border-radius: 0 0 50% 50%;
+}
+
+.ray:nth-child(1) { left: 8%;  transform: rotate(-18deg) scaleX(1.2); animation-delay: 0s;    animation-duration: 14s; opacity: 0.8; }
+.ray:nth-child(2) { left: 22%; transform: rotate(-8deg);               animation-delay: -3s;   animation-duration: 11s; opacity: 0.6; width: 50px; }
+.ray:nth-child(3) { left: 40%; transform: rotate(4deg)  scaleX(1.5);  animation-delay: -6s;   animation-duration: 16s; opacity: 0.9; }
+.ray:nth-child(4) { left: 60%; transform: rotate(12deg);               animation-delay: -2s;   animation-duration: 13s; opacity: 0.5; width: 45px; }
+.ray:nth-child(5) { left: 80%; transform: rotate(22deg) scaleX(1.3);  animation-delay: -8s;   animation-duration: 18s; opacity: 0.7; }
+
+@keyframes rayDrift {
+  from { opacity: var(--ray-opacity, 0.6); transform: var(--ray-transform, rotate(0deg)) translateX(-8px); }
+  to   { opacity: calc(var(--ray-opacity, 0.6) * 0.6); transform: var(--ray-transform, rotate(0deg)) translateX(8px); }
+}
+
+/* Seaweed — left */
+.seaweedLeft {
+  position: absolute;
+  bottom: 0;
+  left: clamp(0px, 3vw, 40px);
+  opacity: 0.65;
+  animation: seaweedSway 6s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+/* Seaweed — right */
+.seaweedRight {
+  position: absolute;
+  bottom: 0;
+  right: clamp(0px, 4vw, 60px);
+  opacity: 0.55;
+  animation: seaweedSway 8s ease-in-out infinite alternate-reverse;
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+@keyframes seaweedSway {
+  from { transform: rotate(-4deg); }
+  to   { transform: rotate(4deg); }
+}
+
+/* Coral — left */
+.coralLeft {
+  position: absolute;
+  bottom: 0;
+  left: clamp(20px, 8vw, 120px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ─── Hero content ──────────────────────────────────────────────── */
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  padding: max(env(safe-area-inset-top), 20px) 18px
-    max(env(safe-area-inset-bottom), 20px);
-  gap: 18px;
-}
-
-.brandHeader {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  margin-top: clamp(4px, 3vh, 24px);
+  gap: 20px;
+  max-width: 680px;
+  padding-top: 60px; /* navbar clearance */
 }
 
-.brand {
+.badge {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(180, 230, 255, 0.9);
+  background: rgba(72, 79, 144, 0.25);
+  border: 1px solid rgba(72, 79, 144, 0.5);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8de4ff;
+  box-shadow: 0 0 6px #8de4ff;
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(32px, 6vw, 62px);
+  font-weight: 800;
+  line-height: 1.12;
+  color: #eaf9ff;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 20px rgba(0, 80, 120, 0.5);
+}
+
+.heroAccent {
+  background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 40%, #484f90 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: clamp(15px, 2.2vw, 18px);
+  line-height: 1.65;
+  color: rgba(200, 235, 250, 0.8);
+  max-width: 46ch;
+}
+
+.heroBreak {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .heroBreak {
+    display: block;
+  }
+}
+
+/* ─── Hero CTAs ─────────────────────────────────────────────────── */
+
+.heroCtas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #06222e;
+  background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 60%, #484f90 140%);
+  border-radius: 999px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 160ms ease, transform 140ms ease, box-shadow 160ms ease;
+  box-shadow:
+    0 8px 24px -8px rgba(77, 199, 238, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.01em;
+}
+
+.ctaPrimary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 32px -8px rgba(77, 199, 238, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.ctaPrimary:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+.ctaPrimary:focus-visible {
+  outline: 2px solid #b6ecff;
+  outline-offset: 3px;
+}
+
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(200, 235, 250, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(140, 210, 240, 0.22);
+  border-radius: 999px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 160ms ease, border-color 160ms ease, transform 140ms ease;
+}
+
+.ctaSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(140, 210, 240, 0.4);
+  transform: translateY(-1px);
+  color: #eaf9ff;
+}
+
+.ctaSecondary:focus-visible {
+  outline: 2px solid #b6ecff;
+  outline-offset: 3px;
+}
+
+/* ─── Trust badges (hero) ───────────────────────────────────────── */
+
+.trustBadges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 10px 18px;
+  background: rgba(4, 18, 28, 0.4);
+  border: 1px solid rgba(100, 200, 240, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(190, 225, 245, 0.8);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.trustDivider {
+  width: 1px;
+  height: 14px;
+  background: rgba(140, 200, 240, 0.2);
+  flex-shrink: 0;
+}
+
+/* ─── Scroll cue ────────────────────────────────────────────────── */
+
+.scrollCue {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollBounce 2.2s ease-in-out infinite;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ─── Form section ──────────────────────────────────────────────── */
+
+.formSection {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formGlow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(72, 79, 144, 0.2) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Coral at bottom of form section */
+.coralBottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.45;
+  pointer-events: none;
+  width: 300px;
+}
+
+/* ─── Form layout ───────────────────────────────────────────────── */
+
+.formLayout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 40px;
+  max-width: 960px;
+  width: 100%;
+  align-items: start;
+}
+
+/* ─── Left info column ──────────────────────────────────────────── */
+
+.formInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 8px;
+}
+
+.formInfoBadge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 5px 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8de4ff;
+  background: rgba(72, 79, 144, 0.2);
+  border: 1px solid rgba(72, 79, 144, 0.4);
+  border-radius: 999px;
+}
+
+.formInfoTitle {
+  margin: 0;
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 800;
+  color: #eaf9ff;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.formInfoDesc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: rgba(190, 225, 245, 0.75);
+  max-width: 36ch;
+}
+
+.featureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.brandMark {
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: rgba(200, 232, 248, 0.82);
+  font-weight: 500;
+}
+
+.featureIcon {
+  display: flex;
   align-items: center;
   justify-content: center;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: rgba(72, 79, 144, 0.25);
+  border: 1px solid rgba(72, 79, 144, 0.4);
+  flex-shrink: 0;
 }
 
-.brandText {
+/* ─── Form card ─────────────────────────────────────────────────── */
+
+.formCard {
   display: flex;
   flex-direction: column;
-  line-height: 1.05;
+  gap: 20px;
+  padding: 28px 24px 24px;
+  border-radius: 24px;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 30, 46, 0.72) 0%,
+    rgba(4, 18, 32, 0.68) 100%
+  );
+  border: 1px solid rgba(100, 190, 230, 0.16);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow:
+    0 24px 60px -16px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 0 0 1px rgba(72, 79, 144, 0.12) inset;
+  transition: box-shadow 240ms ease, border-color 240ms ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.brandSub {
-  font-size: 17px;
+/* Subtle inner glow top-left */
+.formCard::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 200px;
+  height: 120px;
+  background: radial-gradient(
+    ellipse at top left,
+    rgba(141, 228, 255, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.formCard:hover {
+  box-shadow:
+    0 28px 70px -16px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(100, 190, 230, 0.18) inset;
+  border-color: rgba(100, 190, 230, 0.22);
+}
+
+/* ─── Form card header ──────────────────────────────────────────── */
+
+.formCardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.formCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(72, 79, 144, 0.25);
+  border: 1px solid rgba(72, 79, 144, 0.4);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px -4px rgba(72, 79, 144, 0.4);
+}
+
+.formCardTitle {
+  margin: 0;
+  font-size: 20px;
   font-weight: 700;
   color: #eaf9ff;
   letter-spacing: -0.01em;
 }
 
-.brandByline {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(190, 230, 250, 0.6);
-  margin-top: 2px;
+.formCardSubtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(180, 220, 240, 0.65);
+  line-height: 1.5;
 }
 
-.card {
+/* ─── Trust footer bar ──────────────────────────────────────────── */
+
+.trustBar {
   position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(100, 190, 230, 0.1);
+  background: rgba(4, 14, 22, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 20px;
+}
+
+.trustBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.trustBarItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.trustBarItem > div {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 16px 16px;
-  border-radius: 22px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  box-shadow:
-    0 20px 50px -20px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  gap: 2px;
 }
 
-/* Reserved slot for a V3 illustration / SVG. Today it shows a small
-   wordmark so the card doesn't look empty. The slot is height-bounded
-   so dropping in a larger SVG later won't push the form down. */
-.illustrationSlot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 56px;
-  padding: 4px 8px 0;
+.trustBarItem strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #d0eef8;
+  letter-spacing: 0.01em;
 }
 
-.placeholderLabel {
+.trustBarItem span {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(190, 230, 250, 0.5);
+  color: rgba(160, 210, 235, 0.6);
 }
 
-.footer {
-  margin-top: auto;
-  padding-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: rgba(190, 220, 235, 0.4);
-  letter-spacing: 0.06em;
+/* ─── Responsive ────────────────────────────────────────────────── */
+
+@media (max-width: 780px) {
+  .formLayout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    max-width: 520px;
+  }
+
+  .formInfo {
+    text-align: center;
+    align-items: center;
+  }
+
+  .formInfoBadge {
+    align-self: center;
+  }
+
+  .formInfoDesc {
+    max-width: 44ch;
+  }
+
+  .featureList {
+    text-align: left;
+    max-width: 280px;
+  }
+
+  .trustBarInner {
+    gap: 20px;
+  }
+
+  .trustBarItem {
+    flex-basis: calc(50% - 20px);
+  }
 }
 
-/* Tablet & desktop: a touch more breathing room. */
-@media (min-width: 720px) {
-  .center {
-    max-width: 480px;
-    padding: 32px 24px 28px;
-    gap: 22px;
+@media (max-width: 500px) {
+  .hero {
+    padding: 0 16px;
   }
-  .card {
-    padding: 22px 20px 20px;
+
+  .heroContent {
+    gap: 16px;
   }
-  .illustrationSlot {
-    min-height: 64px;
+
+  .trustBadges {
+    gap: 2px;
+    padding: 8px 12px;
+  }
+
+  .trustBadge {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .heroCtas {
+    gap: 10px;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .seaweedLeft,
+  .seaweedRight,
+  .coralLeft {
+    display: none;
+  }
+
+  .trustBarItem {
+    flex-basis: 100%;
+    gap: 10px;
+  }
+
+  .trustBarInner {
+    gap: 14px;
+  }
+
+  .formSection {
+    padding: 60px 16px 80px;
+  }
+
+  .formCard {
+    padding: 22px 18px 20px;
+    border-radius: 20px;
   }
 }
 
-@supports (padding: max(0px)) {
-  .center {
-    padding-left: max(18px, env(safe-area-inset-left));
-    padding-right: max(18px, env(safe-area-inset-right));
+@media (prefers-reduced-motion: reduce) {
+  .ray,
+  .seaweedLeft,
+  .seaweedRight,
+  .badgeDot,
+  .scrollCue,
+  .ctaPrimary,
+  .ctaSecondary,
+  .formCard {
+    animation: none !important;
+    transition: none !important;
   }
 }

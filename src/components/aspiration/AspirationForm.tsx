@@ -292,7 +292,12 @@ export function AspirationForm() {
             <span>Mengirim…</span>
           </>
         ) : (
-          <span>Kirim</span>
+          <>
+            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true" className={styles.sendIcon}>
+              <path d="M2 10 L18 2 L11 18 L9 11 Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Kirim Aspirasi</span>
+          </>
         )}
       </button>
     </form>
