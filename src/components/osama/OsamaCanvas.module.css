@@ -30,9 +30,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 14px;
+  padding: 10px 16px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   color: #06222e;
   background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 100%);
@@ -40,19 +40,20 @@
   border-radius: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: filter 140ms ease, transform 140ms ease, opacity 140ms ease;
+  transition: filter 140ms ease, transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
   white-space: nowrap;
+  box-shadow: 0 4px 14px -4px rgba(77, 199, 238, 0.5);
 }
 
 .downloadBtn:hover:not(:disabled) {
   filter: brightness(1.06);
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(77, 199, 238, 0.65);
 }
 
-.downloadBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+.downloadBtn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.97);
 }
 
 .downloadBtn:focus-visible {

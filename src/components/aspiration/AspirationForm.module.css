@@ -95,16 +95,22 @@
 }
 
 .counter {
-  color: rgba(160, 210, 230, 0.5);
+  color: rgba(180, 230, 255, 0.75);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: rgba(140, 220, 255, 0.08);
+  border: 1px solid rgba(140, 220, 255, 0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
 }
 
 .counterWarn {
-  color: #ffd28a;
+  color: #ffe0a3;
+  background: rgba(255, 210, 138, 0.12);
+  border-color: rgba(255, 210, 138, 0.25);
 }
 
 /* ─── Form-level error ──────────────────────────────────────────── */
