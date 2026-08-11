@@ -318,17 +318,13 @@ export default function HomePage() {
           <div className={styles.sectionLabel}>Story Generator</div>
           <h2 className={styles.sectionTitle}>Canvas Aspirasi &amp; Balasan Admin</h2>
           <p className={styles.sectionDesc}>
-            Lihat hasil Story Generator yang mengikuti template underwater,
-            dengan form Balasan Admin di area dekat kura-kura.
-            Teks Case ID dan pesan disusun sebaris dengan label di template,
-            baseline disejajarkan dengan grid kertas. Admin bisa membalas
-            di kolom Balasan Admin dan mengunduh hasilnya sebagai gambar.
+            Lihat hasil Story Generator yang mengikuti template underwater (template.jpg).
+            Teks Case ID dan pesan diletakkan di ruang kosong antar-garis grid kertas secara natural.
           </p>
           <div className={styles.canvasCard}>
             <CanvasAspirationAdmin
-              caseId="OSM-56PYOW2-SBTQ8M"
-              message="Pagaska music bagus dan mantap sekali, mohon untuk terus ditingkatkan ke depannya agar OSIS semakin jaya!"
-              initialAdminReply="Terima kasih atas aspirasinya! Kami akan segera menindaklanjuti hal ini."
+              caseId="OSM-9821A-K78B29"
+              message="Mohon agar fasilitas lab komputer dan pendingin ruangan di gedung B dapat segera diperbaiki atau diperbarui karena beberapa AC kurang dingin dan sangat mengganggu kenyamanan saat pembelajaran sains."
             />
           </div>
         </div>

@@ -3,9 +3,9 @@
 /**
  * OsamaCanvas — downloadable visual card for OSAMA case detail.
  *
- * Renders the underwater template image onto an HTML Canvas, overlays
- * dynamic Case ID, Message text, and optional Admin Reply in Handelson Two,
- * perfectly aligned with the notebook paper grid.
+ * Renders the underwater template image (template.jpg) onto an HTML Canvas,
+ * positioning Case ID and Message text IN THE BLANK SPACE IN BETWEEN
+ * notebook paper grid lines for a natural handwriting feel.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -13,39 +13,26 @@ import styles from "./OsamaCanvas.module.css";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-/** Exact color for dynamic text overlaid on the canvas. */
 const CANVAS_TEXT_COLOR = "#484f90";
-const CANVAS_ADMIN_REPLY_COLOR = "#1d4ed8";
 
-/** Internal canvas width & height (matches template native resolution). */
-const CANVAS_W = 3375;
-const CANVAS_H = 6000;
+const CANVAS_W = 1440;
+const CANVAS_H = 2560;
 
-// Grid layout aligned with public/kak-taksaka/osama/canvas-template.jpg
-// Line 1: Baked-in "Case ID:" label (X: 554–1094, Y: 1360)
-const CASE_ID_VALUE_X = 1120;
-const CASE_ID_VALUE_Y = 1360;
+const TEMPLATE_URL = "/kak-taksaka/osama/template.jpg";
+const FONT_URL = "/kak-taksaka/osama/fonts/handelson-two.otf";
 
-// Line 2: Baked-in "Message:" label (X: 468–1299, Y: 1530)
-const MSG_VALUE_X = 1320;
-const MSG_VALUE_Y = 1530;
+const FONT_SIZE = 44;
 
-const PAPER_RIGHT_X = 2870;
-const WRAP_START_X = 700;
+// Paper ruled line midpoints (Y center of the blank space between line k and line k+1)
+const Y_START = 441;
+const SPACING = 72.25;
+const GAP_MIDS = Array.from({ length: 25 }, (_, i) =>
+  Math.floor(Y_START + i * SPACING + SPACING / 2.0),
+);
 
-// Line Y positions for message body continuation (notebook paper ruled lines)
-const MSG_LINE_YS = [1703, 1871, 2039, 2209, 2383, 2548];
-
-// Admin reply slot near the turtle (baked-in ":" colon is at X: 645, Y: 2715)
-const ADMIN_REPLY_START_X = 680;
-const ADMIN_REPLY_LINE_YS = [
-  2715, 2873, 3051, 3219, 3389, 3559, 3730, 3903, 4068, 4238,
-];
-
-// Font sizes in native canvas space
-const FONT_SIZE_VALUE = 90;
-const FONT_SIZE_WRAP = 95;
-const FONT_SIZE_ADMIN_REPLY = 95;
+const START_X = 280;
+const PAPER_RIGHT_X = 1200;
+const WRAP_MAX_W = PAPER_RIGHT_X - START_X;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -64,34 +51,6 @@ async function loadFont(name: string, url: string): Promise<void> {
   document.fonts.add(loaded);
 }
 
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] {
-  const result: string[] = [];
-  const paragraphs = text.split(/\r?\n/);
-  for (const para of paragraphs) {
-    if (para.trim() === "") {
-      result.push("");
-      continue;
-    }
-    const words = para.split(" ");
-    let line = "";
-    for (const word of words) {
-      const test = line ? `${line} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && line !== "") {
-        result.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    }
-    if (line) result.push(line);
-  }
-  return result;
-}
-
 // ─── component ────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -102,7 +61,7 @@ interface Props {
 
 type CanvasState = "loading" | "ready" | "error";
 
-export function OsamaCanvas({ caseId, message, adminReply }: Props) {
+export function OsamaCanvas({ caseId, message }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<CanvasState>("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -116,8 +75,8 @@ export function OsamaCanvas({ caseId, message, adminReply }: Props) {
 
       try {
         const [templateImg] = await Promise.all([
-          loadImage("/kak-taksaka/osama/canvas-template.jpg"),
-          loadFont("HandelsonTwo", "/kak-taksaka/osama/fonts/handelson-two.otf"),
+          loadImage(TEMPLATE_URL),
+          loadFont("HandelsonTwo", FONT_URL),
         ]);
 
         if (cancelled) return;
@@ -135,77 +94,56 @@ export function OsamaCanvas({ caseId, message, adminReply }: Props) {
 
         // 2. Base text styles
         ctx.fillStyle = CANVAS_TEXT_COLOR;
-        ctx.textBaseline = "alphabetic";
+        ctx.font = `${FONT_SIZE}px "HandelsonTwo", cursive`;
+        ctx.textBaseline = "middle";
 
-        // 3. Draw Case ID value on Line 1 next to "Case ID:" label
-        ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        ctx.fillText(caseId, CASE_ID_VALUE_X, CASE_ID_VALUE_Y);
+        // 3. Row 1 (Gap Index 1, Y_mid ~ 549): Case ID: <value>
+        const caseIdStr = `Case ID: ${caseId}`;
+        ctx.fillText(caseIdStr, START_X, GAP_MIDS[1]!);
 
-        // 4. Draw Message value on Line 2 next to "Message:" label, and wrap continuation below
-        const msgInlineMaxW = PAPER_RIGHT_X - MSG_VALUE_X;
-        const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
+        // 4. Row 2 (Gap Index 2, Y_mid ~ 621): Message: <value line 1>
+        const msgLabel = "Message: ";
+        const labelWidth = ctx.measureText(msgLabel).width;
+        const line1MaxW = WRAP_MAX_W - labelWidth;
 
-        ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        const m = message.trim();
-        if (m.length > 0) {
-          if (ctx.measureText(m).width <= msgInlineMaxW) {
-            ctx.fillText(m, MSG_VALUE_X, MSG_VALUE_Y);
+        const words = message.trim().split(/\s+/);
+        let line1Text = "";
+        let idx = 0;
+        while (idx < words.length) {
+          const testText = line1Text
+            ? `${line1Text} ${words[idx]}`
+            : words[idx]!;
+          if (ctx.measureText(testText).width <= line1MaxW) {
+            line1Text = testText;
+            idx++;
           } else {
-            const allWords = m.split(/\s+/);
-            let firstSeg = "";
-            let firstWordCount = 0;
-            for (let i = 0; i < allWords.length; i++) {
-              const candidate =
-                firstSeg.length === 0
-                  ? allWords[i]!
-                  : `${firstSeg} ${allWords[i]}`;
-              if (ctx.measureText(candidate).width <= msgInlineMaxW) {
-                firstSeg = candidate;
-                firstWordCount = i + 1;
-              } else {
-                break;
-              }
-            }
-            if (firstSeg.length === 0 && allWords.length > 0) {
-              firstSeg = allWords[0]!;
-              firstWordCount = 1;
-            }
-            ctx.fillText(firstSeg, MSG_VALUE_X, MSG_VALUE_Y);
-
-            const remaining = allWords.slice(firstWordCount).join(" ");
-            if (remaining.length > 0) {
-              ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
-              const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
-              for (
-                let i = 0;
-                i < Math.min(wrappedLines.length, MSG_LINE_YS.length);
-                i++
-              ) {
-                ctx.fillText(wrappedLines[i]!, WRAP_START_X, MSG_LINE_YS[i]!);
-              }
-            }
+            break;
           }
         }
 
-        // 5. Draw Admin Reply near the turtle after the baked-in ":" colon indicator (X=645, Y=2715)
-        const r = adminReply ? adminReply.trim() : "";
-        if (r.length > 0) {
-          ctx.fillStyle = CANVAS_ADMIN_REPLY_COLOR;
-          ctx.font = `${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
-          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_START_X;
-          const replyLines = wrapText(ctx, r, replyMaxW);
+        ctx.fillText(msgLabel, START_X, GAP_MIDS[2]!);
+        ctx.fillText(line1Text, START_X + labelWidth, GAP_MIDS[2]!);
 
-          for (
-            let i = 0;
-            i < Math.min(replyLines.length, ADMIN_REPLY_LINE_YS.length);
-            i++
-          ) {
-            ctx.fillText(
-              replyLines[i]!,
-              ADMIN_REPLY_START_X,
-              ADMIN_REPLY_LINE_YS[i]!,
-            );
+        // 5. Continuation lines on Gap Index 3, 4, 5...
+        const remWords = words.slice(idx);
+        let currGapIdx = 3;
+
+        let currLine = "";
+        for (const w of remWords) {
+          const testLine = currLine ? `${currLine} ${w}` : w;
+          if (ctx.measureText(testLine).width <= WRAP_MAX_W) {
+            currLine = testLine;
+          } else {
+            if (currLine && currGapIdx < GAP_MIDS.length) {
+              ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
+              currGapIdx++;
+            }
+            currLine = w;
           }
+        }
+
+        if (currLine && currGapIdx < GAP_MIDS.length) {
+          ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
         }
 
         if (!cancelled) setState("ready");
@@ -221,7 +159,7 @@ export function OsamaCanvas({ caseId, message, adminReply }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [caseId, message, adminReply]);
+  }, [caseId, message]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
@@ -279,4 +217,5 @@ export function OsamaCanvas({ caseId, message, adminReply }: Props) {
     </div>
   );
 }
+
 

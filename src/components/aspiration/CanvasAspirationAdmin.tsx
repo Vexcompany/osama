@@ -3,62 +3,36 @@
 /**
  * CanvasAspirationAdmin
  *
- * Renders the OSAMA canvas template with:
- *   - Case ID       (top line, after the "Case ID:" label)
- *   - Message       (next line, after the "Message:" label)
- *   - Admin reply   (below the message, in a "Balasan Admin" area
- *                    near the turtle, after a small ":" marker)
+ * Renders the OSAMA story canvas template (template.jpg) with:
+ *   1. Case ID: <value> (Row 1, in the blank space between line 2 & 3)
+ *   2. Message: <value> (Row 2, in the blank space between line 3 & 4, and wrapped below)
  *
- * The component:
- *   - Loads the underwater template image (same one used in
- *     the OSAMA case detail canvas).
- *   - Loads the HandelsonTwo font used by the existing canvas.
- *   - Measures the template's baked-in "Case ID:" and "Message:"
- *     labels from pixels and positions each value right after
- *     the label's measured right edge, so the inline run reads
- *     like one natural line ("Case ID: <value>").
- *   - Provides an admin reply text input whose value is drawn
- *     on the canvas at the area near the turtle, after a small
- *     ":" marker (the admin reply slot).
- *   - Renders a download button that exports the canvas as a
- *     high-resolution PNG.
- *
- * The input values are kept in local state for now; this
- * component is a self-contained preview/admin-reply tool.
+ * Positions text strictly in the blank space between notebook paper grid lines
+ * for a clean, natural handwriting appearance.
  */
 import { useEffect, useRef, useState } from "react";
 import styles from "./CanvasAspirationAdmin.module.css";
 
-// ─── constants (mirror OsamaCanvas.tsx) ─────────────────────────
-const CANVAS_W = 3375;
-const CANVAS_H = 6000;
+// ─── constants ───────────────────────────────────────────────────
+const CANVAS_W = 1440;
+const CANVAS_H = 2560;
 
-// Grid layout aligned with public/kak-taksaka/osama/canvas-template.jpg
-const CASE_ID_VALUE_X = 1120;
-const CASE_ID_VALUE_Y = 1360;
-
-const MSG_VALUE_X = 1320;
-const MSG_VALUE_Y = 1530;
-
-const PAPER_RIGHT_X = 2870;
-const WRAP_START_X = 700;
-
-const MSG_LINE_YS = [1703, 1871, 2039, 2209, 2383, 2548];
-
-const ADMIN_REPLY_START_X = 680;
-const ADMIN_REPLY_LINE_YS = [
-  2715, 2873, 3051, 3219, 3389, 3559, 3730, 3903, 4068, 4238,
-];
-
-const FONT_SIZE_VALUE = 90;
-const FONT_SIZE_WRAP = 95;
-const FONT_SIZE_ADMIN_REPLY = 95;
-
-const TEXT_COLOR = "#484f90";
-const ADMIN_TEXT_COLOR = "#1d4ed8";
-
-const TEMPLATE_URL = "/kak-taksaka/osama/canvas-template.jpg";
+const TEMPLATE_URL = "/kak-taksaka/osama/template.jpg";
 const FONT_URL = "/kak-taksaka/osama/fonts/handelson-two.otf";
+
+const FONT_SIZE = 44;
+const TEXT_COLOR = "#484f90";
+
+// Paper ruled line midpoints (Y center of the blank space between line k and line k+1)
+const Y_START = 441;
+const SPACING = 72.25;
+const GAP_MIDS = Array.from({ length: 25 }, (_, i) =>
+  Math.floor(Y_START + i * SPACING + SPACING / 2.0),
+);
+
+const START_X = 280;
+const PAPER_RIGHT_X = 1200;
+const WRAP_MAX_W = PAPER_RIGHT_X - START_X;
 
 // ─── helpers ─────────────────────────────────────────────────────
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -76,56 +50,24 @@ async function loadFont(name: string, url: string): Promise<void> {
   document.fonts.add(loaded);
 }
 
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] {
-  const result: string[] = [];
-  const paragraphs = text.split(/\r?\n/);
-  for (const para of paragraphs) {
-    if (para.trim() === "") {
-      result.push("");
-      continue;
-    }
-    const words = para.split(" ");
-    let line = "";
-    for (const word of words) {
-      const test = line ? `${line} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && line !== "") {
-        result.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    }
-    if (line) result.push(line);
-  }
-  return result;
-}
-
 // ─── component ───────────────────────────────────────────────────
 interface Props {
   caseId?: string;
   message?: string;
-  initialAdminReply?: string;
 }
 
 export function CanvasAspirationAdmin({
-  caseId: initialCaseId = "OSM-00000-XXXXXX",
-  message: initialMessage = "Tulis pesan di sini...",
-  initialAdminReply = "",
+  caseId: initialCaseId = "OSM-9821A-K78B29",
+  message: initialMessage = "Mohon agar fasilitas lab komputer dan pendingin ruangan di gedung B dapat segera diperbaiki atau diperbarui karena beberapa AC kurang dingin dan sangat mengganggu kenyamanan saat pembelajaran sains.",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [caseId, setCaseId] = useState(initialCaseId);
   const [message, setMessage] = useState(initialMessage);
-  const [adminReply, setAdminReply] = useState(initialAdminReply);
   const [state, setState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Re-render the canvas whenever any of the inputs change.
   useEffect(() => {
     let cancelled = false;
     async function render() {
@@ -145,78 +87,61 @@ export function CanvasAspirationAdmin({
         canvas.width = CANVAS_W;
         canvas.height = CANVAS_H;
 
-        // Background.
+        // 1. Draw background template
         ctx.drawImage(templateImg, 0, 0, CANVAS_W, CANVAS_H);
 
+        // 2. Base text styles
         ctx.fillStyle = TEXT_COLOR;
-        ctx.textBaseline = "alphabetic";
+        ctx.font = `${FONT_SIZE}px "HandelsonTwo", cursive`;
+        ctx.textBaseline = "middle";
 
-        // 1. Case ID value on Line 1 next to "Case ID:" label
-        ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        ctx.fillText(caseId, CASE_ID_VALUE_X, CASE_ID_VALUE_Y);
+        // 3. Row 1 (Gap Index 1, Y_mid ~ 549): Case ID: <value>
+        const caseIdStr = `Case ID: ${caseId}`;
+        ctx.fillText(caseIdStr, START_X, GAP_MIDS[1]!);
 
-        // 2. Message value on Line 2 next to "Message:" label, wrap below
-        const msgInlineMaxW = PAPER_RIGHT_X - MSG_VALUE_X;
-        const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
-        ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        const m = message.trim();
-        if (m.length > 0) {
-          if (ctx.measureText(m).width <= msgInlineMaxW) {
-            ctx.fillText(m, MSG_VALUE_X, MSG_VALUE_Y);
+        // 4. Row 2 (Gap Index 2, Y_mid ~ 621): Message: <value line 1>
+        const msgLabel = "Message: ";
+        const labelWidth = ctx.measureText(msgLabel).width;
+        const line1MaxW = WRAP_MAX_W - labelWidth;
+
+        const words = message.trim().split(/\s+/);
+        let line1Text = "";
+        let idx = 0;
+        while (idx < words.length) {
+          const testText = line1Text
+            ? `${line1Text} ${words[idx]}`
+            : words[idx]!;
+          if (ctx.measureText(testText).width <= line1MaxW) {
+            line1Text = testText;
+            idx++;
           } else {
-            const allWords = m.split(/\s+/);
-            let firstSeg = "";
-            let firstWordCount = 0;
-            for (let i = 0; i < allWords.length; i++) {
-              const candidate =
-                firstSeg.length === 0
-                  ? allWords[i]!
-                  : `${firstSeg} ${allWords[i]}`;
-              if (ctx.measureText(candidate).width <= msgInlineMaxW) {
-                firstSeg = candidate;
-                firstWordCount = i + 1;
-              } else {
-                break;
-              }
-            }
-            if (firstSeg.length === 0 && allWords.length > 0) {
-              firstSeg = allWords[0]!;
-              firstWordCount = 1;
-            }
-            ctx.fillText(firstSeg, MSG_VALUE_X, MSG_VALUE_Y);
-            const remaining = allWords.slice(firstWordCount).join(" ");
-            if (remaining.length > 0) {
-              ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
-              const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
-              for (
-                let i = 0;
-                i < Math.min(wrappedLines.length, MSG_LINE_YS.length);
-                i++
-              ) {
-                ctx.fillText(wrappedLines[i]!, WRAP_START_X, MSG_LINE_YS[i]!);
-              }
-            }
+            break;
           }
         }
 
-        // 3. Admin reply — drawn near the turtle after the baked-in ":" colon indicator (X=645, Y=2715)
-        const r = adminReply.trim();
-        if (r.length > 0) {
-          ctx.fillStyle = ADMIN_TEXT_COLOR;
-          ctx.font = `${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
-          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_START_X;
-          const replyLines = wrapText(ctx, r, replyMaxW);
-          for (
-            let i = 0;
-            i < Math.min(replyLines.length, ADMIN_REPLY_LINE_YS.length);
-            i++
-          ) {
-            ctx.fillText(
-              replyLines[i]!,
-              ADMIN_REPLY_START_X,
-              ADMIN_REPLY_LINE_YS[i]!,
-            );
+        ctx.fillText(msgLabel, START_X, GAP_MIDS[2]!);
+        ctx.fillText(line1Text, START_X + labelWidth, GAP_MIDS[2]!);
+
+        // 5. Continuation lines on Gap Index 3, 4, 5...
+        const remWords = words.slice(idx);
+        let currGapIdx = 3;
+
+        let currLine = "";
+        for (const w of remWords) {
+          const testLine = currLine ? `${currLine} ${w}` : w;
+          if (ctx.measureText(testLine).width <= WRAP_MAX_W) {
+            currLine = testLine;
+          } else {
+            if (currLine && currGapIdx < GAP_MIDS.length) {
+              ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
+              currGapIdx++;
+            }
+            currLine = w;
           }
+        }
+
+        if (currLine && currGapIdx < GAP_MIDS.length) {
+          ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
         }
 
         if (!cancelled) setState("ready");
@@ -231,9 +156,8 @@ export function CanvasAspirationAdmin({
     return () => {
       cancelled = true;
     };
-  }, [caseId, message, adminReply]);
+  }, [caseId, message]);
 
-  // Download the current canvas as a high-res PNG.
   function handleDownload() {
     const canvas = canvasRef.current;
     if (!canvas || state !== "ready") return;
@@ -256,10 +180,8 @@ export function CanvasAspirationAdmin({
       <header className={styles.header}>
         <h2 className={styles.title}>Canvas Aspirasi</h2>
         <p className={styles.subtitle}>
-          Preview dan balas aspirasi. Hasil render mengikuti
-          template underwater yang sama dengan Story Generator,
-          dengan tambahan kolom Balasan Admin di area dekat
-          kura-kura.
+          Preview Story Generator dengan template underwater. Teks diletakkan
+          di ruang kosong antar-garis grid kertas secara natural.
         </p>
       </header>
 
@@ -315,22 +237,9 @@ export function CanvasAspirationAdmin({
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            rows={3}
+            rows={4}
             className={styles.textarea}
             placeholder="Tulis pesan aspirasi di sini..."
-          />
-        </label>
-
-        <label className={`${styles.field} ${styles.fieldAdmin}`}>
-          <span className={`${styles.fieldLabel} ${styles.fieldLabelAdmin}`}>
-            Balasan Admin (di area dekat kura-kura, setelah tanda ":")
-          </span>
-          <textarea
-            value={adminReply}
-            onChange={(e) => setAdminReply(e.target.value)}
-            rows={3}
-            className={`${styles.textarea} ${styles.textareaAdmin}`}
-            placeholder="Tulis balasan resmi OSIS / PAGASKA..."
           />
         </label>
       </div>
@@ -339,3 +248,4 @@ export function CanvasAspirationAdmin({
 }
 
 export default CanvasAspirationAdmin;
+
