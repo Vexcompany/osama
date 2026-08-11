@@ -15,7 +15,6 @@
 import { AspirationForm } from "@/components/aspiration/AspirationForm";
 import { KakTaksaka } from "@/components/kak-taksaka/KakTaksaka";
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
-import { CanvasAspirationAdmin } from "@/components/aspiration/CanvasAspirationAdmin";
 import { Navbar } from "@/components/nav/Navbar";
 import styles from "./page.module.css";
 
@@ -75,21 +74,21 @@ export default function HomePage() {
         </div>
 
         <div className={styles.heroContent}>
-          <div className={styles.badge} aria-label="SMKN 5 Madiun">
+          <div className={styles.badge} aria-label="OSIS Ngobrol Yuk SMKN 5 Madiun">
             <span className={styles.badgeDot} aria-hidden="true" />
-            SMKN 5 MADIUN
+            OSIS NGOBROL YUK · SMKN 5 MADIUN
           </div>
 
           <h1 className={styles.heroTitle}>
-            Suaramu Berarti,
+            Suaramu Penting,
             <br />
             <span className={styles.heroAccent}>Bersama Kita Beraksi</span>
           </h1>
 
           <p className={styles.heroSubtitle}>
-            Sampaikan aspirasi, kritik, atau saranmu untuk
+            Sampaikan aspirasi, saran, dan masukanmu untuk
             <br className={styles.heroBreak} />
-            membangun sekolah yang lebih baik.
+            membuat SMKN 5 Madiun menjadi lebih baik.
           </p>
 
           <div className={styles.heroCtas}>
@@ -303,29 +302,6 @@ export default function HomePage() {
             </div>
 
             <AspirationForm />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Canvas Story Generator (V3.1) ───────────────────────────────── */}
-      <section
-        id="canvas-story"
-        className={styles.canvasSection}
-        aria-label="Canvas Story Generator"
-      >
-        <div className={styles.canvasGlow} aria-hidden="true" />
-        <div className={styles.canvasInner}>
-          <div className={styles.sectionLabel}>Story Generator</div>
-          <h2 className={styles.sectionTitle}>Canvas Aspirasi &amp; Balasan Admin</h2>
-          <p className={styles.sectionDesc}>
-            Lihat hasil Story Generator yang mengikuti template underwater (template.jpg).
-            Teks Case ID dan pesan diletakkan di ruang kosong antar-garis grid kertas secara natural.
-          </p>
-          <div className={styles.canvasCard}>
-            <CanvasAspirationAdmin
-              caseId="OSM-9821A-K78B29"
-              message="Mohon agar fasilitas lab komputer dan pendingin ruangan di gedung B dapat segera diperbaiki atau diperbarui karena beberapa AC kurang dingin dan sangat mengganggu kenyamanan saat pembelajaran sains."
-            />
           </div>
         </div>
       </section>
