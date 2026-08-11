@@ -307,6 +307,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Canvas Story Generator (V3.1) ───────────────────────────────── */}
+      <section
+        id="canvas-story"
+        className={styles.canvasSection}
+        aria-label="Canvas Story Generator"
+      >
+        <div className={styles.canvasGlow} aria-hidden="true" />
+        <div className={styles.canvasInner}>
+          <div className={styles.sectionLabel}>Story Generator</div>
+          <h2 className={styles.sectionTitle}>Canvas Aspirasi &amp; Balasan Admin</h2>
+          <p className={styles.sectionDesc}>
+            Lihat hasil Story Generator yang mengikuti template underwater,
+            dengan form Balasan Admin di area dekat kura-kura.
+            Teks Case ID dan pesan disusun sebaris dengan label di template,
+            baseline disejajarkan dengan grid kertas. Admin bisa membalas
+            di kolom Balasan Admin dan mengunduh hasilnya sebagai gambar.
+          </p>
+          <div className={styles.canvasCard}>
+            <CanvasAspirationAdmin
+              caseId="OSM-56PYOW2-SBTQ8M"
+              message="Pagaska music bagus dan mantap sekali, mohon untuk terus ditingkatkan ke depannya agar OSIS semakin jaya!"
+              initialAdminReply="Terima kasih atas aspirasinya! Kami akan segera menindaklanjuti hal ini."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ── Rules & Notes Section ───────────────────────────────────────── */}
       <section id="rules" className={styles.rulesSection} aria-label="Aturan dan Catatan">
         <div className={styles.rulesGlow} aria-hidden="true" />

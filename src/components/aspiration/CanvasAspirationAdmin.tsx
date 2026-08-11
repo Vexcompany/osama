@@ -1,203 +1,383 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+/**
+ * CanvasAspirationAdmin
+ *
+ * Renders the OSAMA canvas template with:
+ *   - Case ID       (top line, after the "Case ID:" label)
+ *   - Message       (next line, after the "Message:" label)
+ *   - Admin reply   (below the message, in a "Balasan Admin" area
+ *                    near the turtle, after a small ":" marker)
+ *
+ * The component:
+ *   - Loads the underwater template image (same one used in
+ *     the OSAMA case detail canvas).
+ *   - Loads the HandelsonTwo font used by the existing canvas.
+ *   - Measures the template's baked-in "Case ID:" and "Message:"
+ *     labels from pixels and positions each value right after
+ *     the label's measured right edge, so the inline run reads
+ *     like one natural line ("Case ID: <value>").
+ *   - Provides an admin reply text input whose value is drawn
+ *     on the canvas at the area near the turtle, after a small
+ *     ":" marker (the admin reply slot).
+ *   - Renders a download button that exports the canvas as a
+ *     high-resolution PNG.
+ *
+ * The input values are kept in local state for now; this
+ * component is a self-contained preview/admin-reply tool.
+ */
+import { useEffect, useRef, useState } from "react";
+import styles from "./CanvasAspirationAdmin.module.css";
 
-interface AspirationData {
-  caseId: string;
-  message: string;
-  adminReply: string;
+// ─── constants (mirror OsamaCanvas.tsx) ─────────────────────────
+const CANVAS_W = 3375;
+const CANVAS_H = 6000;
+
+// Paper ruled-line spacing ≈ 168 px. Y positions of the
+// template's labels and the area we use for the admin reply.
+const CASE_ID_VALUE_Y  = 1527; // ruled line 2 (template "Case ID:" baked here)
+const MSG_VALUE_Y      = 1699; // ruled line 3 (template "Message:" baked here)
+const ADMIN_REPLY_Y    = 2714; // ruled line near the turtle
+
+// Measured positions of the template's baked-in labels.
+// "Case ID:"  left x ≈ 519, right x ≈ 1280  (width ≈ 761)
+// "Message:"  left x ≈ 486, right x ≈ 1240  (width ≈ 754)
+const CASE_ID_LABEL_LEFT  = 519;
+const CASE_ID_LABEL_WIDTH = 761;
+const MSG_LABEL_LEFT      = 486;
+const MSG_LABEL_WIDTH     = 754;
+const LABEL_VALUE_GAP     = 0;
+const WRAP_START_X        = 680;
+const PAPER_RIGHT_X       = 2870;
+
+// Admin reply area: a small ":" marker on the ruled line
+// near the turtle, then the reply text. The marker is a
+// small character we draw at the start of the slot so the
+// admin can see where the reply begins, matching what the
+// user described ("ada tanda ':'" near the turtle).
+const ADMIN_REPLY_MARKER_X      = 730;
+const ADMIN_REPLY_MARKER_GLYPH  = ":";
+const ADMIN_REPLY_TEXT_X        = 800;
+
+// Font sizes in native canvas space.
+const FONT_SIZE_VALUE       = 90;
+const FONT_SIZE_WRAP        = 110;
+const FONT_SIZE_ADMIN_LABEL = 80;  // "Balasan Admin:" header above the reply
+const FONT_SIZE_ADMIN_REPLY = 100; // the reply text itself
+
+// Wrap width for the message body when it overflows the
+// inline window. Same as in the production canvas.
+const MSG_INLINE_MAX_W_FOR_FIRST_SEG = 1100; // smaller than OSAMA case to keep first segment compact
+
+const TEXT_COLOR       = "#484f90";
+const ADMIN_TEXT_COLOR = "#1d4ed8"; // distinct color for the admin reply
+const ADMIN_LABEL_COLOR = "#0f172a";
+
+const TEMPLATE_URL = "/kak-taksaka/osama/canvas-template.jpg";
+const FONT_URL     = "/kak-taksaka/osama/fonts/handelson-two.otf";
+
+// ─── helpers ─────────────────────────────────────────────────────
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    img.src = src;
+  });
 }
 
-export default function CanvasAspirationAdmin() {
-  // State untuk simulasi data dinamis
-  const [data, setData] = useState<AspirationData>({
-    caseId: "OSM-56PYOW2-SBTQ8M",
-    message: "Pagaska music bagus dan mantap sekali, mohon untuk terus ditingkatkan ke depannya agar OSIS semakin jaya!",
-    adminReply: "Terima kasih atas aspirasinya! Kami akan segera menindaklanjuti hal ini.",
-  });
+async function loadFont(name: string, url: string): Promise<void> {
+  const font = new FontFace(name, `url(${url})`);
+  const loaded = await font.load();
+  document.fonts.add(loaded);
+}
 
-  const [isAdmin, setIsAdmin] = useState<boolean>(true); // Mode Toggle Admin/User
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  // Fungsi untuk menggambar ulang gambar dan teks di atas HTML5 Canvas
-  const drawCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.src = "/images/template.jpg"; // Memuat gambar mentahan kosongan Anda
-    
-    img.onload = () => {
-      // Atur resolusi kanvas sesuai resolusi asli template gambar agar tajam saat diunduh
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      // 1. Gambar background mentahan terlebih dahulu
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // 2. Konfigurasi Gaya Tulisan (Font & Warna)
-      ctx.fillStyle = "#1e293b"; // Warna teks biru gelap/slate senada tema laut
-      ctx.textBaseline = "top";
-
-      // --- A. MENGGAMBAR CASE ID ---
-      ctx.font = "bold 24px 'Courier New', Courier, monospace";
-      // Koordinat X=120, Y=220 (Silakan sesuaikan dengan posisi baris pertama kertas Anda)
-      ctx.fillText(`Case ID: ${data.caseId}`, 120, 220);
-
-      // --- B. MENGGAMBAR MESSAGE (Dengan Fitur Auto-Wrap / Turun Baris Otomatis) ---
-      ctx.font = "20px 'Comic Sans MS', cursive, sans-serif"; // Efek tulisan tangan santai
-      const startX = 120;
-      let startY = 270; // Memulai tulisan pesan di bawah Case ID
-      const maxWidth = canvas.width - 240; // Batas kanan agar tidak keluar dari kertas
-      const lineHeight = 36; // Jarak antar baris kertas (Sesuaikan dengan grid kertas template.jpg)
-
-      const words = data.message.split(" ");
-      let currentLine = "Message: ";
-
-      for (let n = 0; n < words.length; n++) {
-        let testLine = currentLine + words[n] + " ";
-        let metrics = ctx.measureText(testLine);
-        let testWidth = metrics.width;
-
-        if (testWidth > maxWidth && n > 0) {
-          ctx.fillText(currentLine, startX, startY);
-          currentLine = words[n] + " ";
-          startY += lineHeight; // Turun ke baris grid kertas berikutnya
-        } else {
-          currentLine = testLine;
-        }
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string[] {
+  const result: string[] = [];
+  const paragraphs = text.split(/\r?\n/);
+  for (const para of paragraphs) {
+    if (para.trim() === "") {
+      result.push("");
+      continue;
+    }
+    const words = para.split(" ");
+    let line = "";
+    for (const word of words) {
+      const test = line ? `${line} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && line !== "") {
+        result.push(line);
+        line = word;
+      } else {
+        line = test;
       }
-      ctx.fillText(currentLine, startX, startY);
+    }
+    if (line) result.push(line);
+  }
+  return result;
+}
 
-      // --- C. MENGGAMBAR BALASAN ADMIN (Di dekat area kura-kura / setelah tanda ":") ---
-      if (data.adminReply) {
-        ctx.font = "bold 20px 'Courier New', Courier, monospace";
-        ctx.fillStyle = "#b91c1c"; // Gunakan warna merah maroon khusus balasan admin agar kontras
-        
-        // Asumsi posisi tanda ":" dekat kura-kura berada di sekitar koordinat X=210, Y=480
-        // Teks balasan admin akan digambar langsung tepat setelah tanda tersebut secara rapi
-        const replyX = 210; 
-        const replyStartY = 480; 
-        const maxReplyWidth = canvas.width - 320;
-        const replyLineHeight = 32;
+// ─── component ───────────────────────────────────────────────────
+interface Props {
+  caseId?: string;
+  message?: string;
+  initialAdminReply?: string;
+}
 
-        const replyWords = data.adminReply.split(" ");
-        let currentReplyLine = "";
+export function CanvasAspirationAdmin({
+  caseId: initialCaseId = "OSM-00000-XXXXXX",
+  message: initialMessage = "Tulis pesan di sini...",
+  initialAdminReply = "",
+}: Props) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [caseId, setCaseId] = useState(initialCaseId);
+  const [message, setMessage] = useState(initialMessage);
+  const [adminReply, setAdminReply] = useState(initialAdminReply);
+  const [state, setState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [errorMsg, setErrorMsg] = useState("");
 
-        let currentY = replyStartY;
-        for (let i = 0; i < replyWords.length; i++) {
-          let testLine = currentReplyLine + replyWords[i] + " ";
-          let metrics = ctx.measureText(testLine);
-          if (metrics.width > maxReplyWidth && i > 0) {
-            ctx.fillText(currentReplyLine, replyX, currentY);
-            currentReplyLine = replyWords[i] + " ";
-            currentY += replyLineHeight;
+  // Re-render the canvas whenever any of the inputs change.
+  useEffect(() => {
+    let cancelled = false;
+    async function render() {
+      setState("loading");
+      setErrorMsg("");
+      try {
+        const [templateImg] = await Promise.all([
+          loadImage(TEMPLATE_URL),
+          loadFont("HandelsonTwo", FONT_URL),
+        ]);
+        if (cancelled) return;
+        const canvas = canvasRef.current;
+        if (!canvas) throw new Error("Canvas element not available");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Failed to get 2D context");
+
+        canvas.width  = CANVAS_W;
+        canvas.height = CANVAS_H;
+
+        // Background.
+        ctx.drawImage(templateImg, 0, 0, CANVAS_W, CANVAS_H);
+
+        ctx.fillStyle = TEXT_COLOR;
+        ctx.textBaseline = "alphabetic";
+
+        // 1. Case ID value: inline next to the template's
+        //    baked-in "Case ID:" label.
+        const caseIdValueX =
+          CASE_ID_LABEL_LEFT + CASE_ID_LABEL_WIDTH + LABEL_VALUE_GAP;
+        ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
+        ctx.fillText(caseId, caseIdValueX, CASE_ID_VALUE_Y);
+
+        // 2. Message value: inline next to "Message:".
+        const msgValueX =
+          MSG_LABEL_LEFT + MSG_LABEL_WIDTH + LABEL_VALUE_GAP;
+        const msgValueMaxW = PAPER_RIGHT_X - msgValueX;
+        ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
+        const m = message.trim();
+        if (m.length > 0) {
+          if (ctx.measureText(m).width <= msgValueMaxW) {
+            ctx.fillText(m, msgValueX, MSG_VALUE_Y);
           } else {
-            currentReplyLine = testLine;
+            const allWords = m.split(/\s+/);
+            let firstSeg = "";
+            let firstWordCount = 0;
+            for (let i = 0; i < allWords.length; i++) {
+              const candidate =
+                firstSeg.length === 0
+                  ? allWords[i]!
+                  : `${firstSeg} ${allWords[i]}`;
+              if (ctx.measureText(candidate).width <= msgValueMaxW) {
+                firstSeg = candidate;
+                firstWordCount = i + 1;
+              } else {
+                break;
+              }
+            }
+            if (firstSeg.length === 0 && allWords.length > 0) {
+              firstSeg = allWords[0]!;
+              firstWordCount = 1;
+            }
+            ctx.fillText(firstSeg, msgValueX, MSG_VALUE_Y);
+            const remaining = allWords.slice(firstWordCount).join(" ");
+            if (remaining.length > 0) {
+              ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
+              const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
+              const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
+              // The next empty ruled line is 168 px below
+              // the Message line; that's y = 1699 + 168 = 1867.
+              let y = MSG_VALUE_Y + 168;
+              for (const line of wrappedLines) {
+                ctx.fillText(line, WRAP_START_X, y);
+                y += 168;
+                if (y > 4750) {
+                  ctx.fillText("…", WRAP_START_X, y);
+                  break;
+                }
+              }
+            }
           }
         }
-        ctx.fillText(currentReplyLine, replyX, currentY);
+
+        // 3. Admin reply — drawn in the area near the turtle,
+        //    starting with a small ":" marker on the ruled
+        //    line so the user can see where the reply begins.
+        if (adminReply.trim().length > 0) {
+          // Label above the reply.
+          ctx.fillStyle = ADMIN_LABEL_COLOR;
+          ctx.font = `bold ${FONT_SIZE_ADMIN_LABEL}px "HandelsonTwo", cursive`;
+          ctx.fillText(
+            "Balasan Admin:",
+            WRAP_START_X,
+            ADMIN_REPLY_Y - 100,
+          );
+          // Marker (the ":" sign on the ruled line near the
+          // turtle).
+          ctx.fillStyle = ADMIN_TEXT_COLOR;
+          ctx.font = `bold ${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
+          ctx.fillText(
+            ADMIN_REPLY_MARKER_GLYPH,
+            ADMIN_REPLY_MARKER_X,
+            ADMIN_REPLY_Y,
+          );
+          // Reply text. Wrap to multiple lines if it doesn't
+          // fit on one ruled line.
+          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_TEXT_X;
+          ctx.font = `${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
+          const replyLines = wrapText(ctx, adminReply, replyMaxW);
+          let replyY = ADMIN_REPLY_Y;
+          for (const line of replyLines) {
+            ctx.fillText(line, ADMIN_REPLY_TEXT_X, replyY);
+            replyY += 168;
+            if (replyY > 4500) {
+              ctx.fillText("…", ADMIN_REPLY_TEXT_X, replyY);
+              break;
+            }
+          }
+        }
+
+        if (!cancelled) setState("ready");
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg(err instanceof Error ? err.message : String(err));
+          setState("error");
+        }
       }
+    }
+    render();
+    return () => {
+      cancelled = true;
     };
-  };
+  }, [caseId, message, adminReply]);
 
-  // Gambar ulang kanvas setiap kali ada perubahan pada text input
-  useEffect(() => {
-    drawCanvas();
-  }, [data]);
-
-  // Fungsi untuk mengunduh hasil Canvas menjadi file gambar JPG beresolusi tinggi
-  const handleDownload = () => {
+  // Download the current canvas as a high-res PNG.
+  function handleDownload() {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Mengubah canvas menjadi data URL berbentuk JPEG
-    const imageURI = canvas.toDataURL("image/jpeg", 1.0);
-    
-    // Trigger download menggunakan tag anchor virtual
-    const link = document.createElement("a");
-    link.download = `Aspirasi-${data.caseId}.jpg`;
-    link.href = imageURI;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    if (!canvas || state !== "ready") return;
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `OSAMA-${caseId}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      "image/png",
+    );
+  }
 
   return (
-    <div style={{ padding: "24px", maxWidth: "600px", margin: "0 auto", fontFamily: "sans-serif" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Preview &amp; Cetak Kanvas Sosmed</h2>
-      
-      {/* Toggle Role untuk Simulasi */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
-        <button 
-          onClick={() => setIsAdmin(false)}
-          style={{ padding: "8px 16px", backgroundColor: !isAdmin ? "#2563eb" : "#e2e8f0", color: !isAdmin ? "#fff" : "#000", border: "none", borderRadius: "6px", cursor: "pointer" }}
-        >
-          Mode User (Public)
-        </button>
-        <button 
-          onClick={() => setIsAdmin(true)}
-          style={{ padding: "8px 16px", backgroundColor: isAdmin ? "#2563eb" : "#e2e8f0", color: isAdmin ? "#fff" : "#000", border: "none", borderRadius: "6px", cursor: "pointer" }}
-        >
-          Mode Admin (Balasan)
-        </button>
-      </div>
+    <div className={styles.wrapper}>
+      <header className={styles.header}>
+        <h2 className={styles.title}>Canvas Aspirasi</h2>
+        <p className={styles.subtitle}>
+          Preview dan balas aspirasi. Hasil render mengikuti
+          template underwater yang sama dengan Story Generator,
+          dengan tambahan kolom Balasan Admin di area dekat
+          kura-kura.
+        </p>
+      </header>
 
-      {/* RENDER UTAMA HTML5 CANVAS */}
-      <div style={{ width: "100%", overflowX: "auto", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", borderRadius: "8px", marginBottom: "20px" }}>
-        <canvas 
-          ref={canvasRef} 
-          style={{ width: "100%", height: "auto", display: "block" }}
+      <div className={styles.canvasShell}>
+        <canvas
+          ref={canvasRef}
+          className={styles.canvas}
+          aria-label={`Canvas visual aspirasi dengan Case ID ${caseId}`}
+          style={{ opacity: state === "ready" ? 1 : 0.4 }}
         />
+        {state === "loading" && (
+          <div className={styles.loadingOverlay} aria-live="polite">
+            <span className={styles.loadingDot} />
+            <span className={styles.loadingText}>Menyiapkan kanvas…</span>
+          </div>
+        )}
       </div>
 
-      {/* TOMBOL UNDUH */}
+      {state === "error" && (
+        <p className={styles.errorNotice} role="alert">
+          Gagal membuat canvas: {errorMsg}
+        </p>
+      )}
+
       <button
+        type="button"
+        className={styles.downloadBtn}
         onClick={handleDownload}
-        style={{ width: "100%", padding: "12px", backgroundColor: "#16a34a", color: "white", fontSize: "16px", fontWeight: "bold", border: "none", borderRadius: "6px", cursor: "pointer", marginBottom: "24px" }}
+        disabled={state !== "ready"}
+        aria-label={`Unduh canvas aspirasi ${caseId} sebagai gambar PNG`}
       >
-        📥 Unduh Gambar untuk Sosmed
+        {state === "loading"
+          ? "Memuat…"
+          : state === "error"
+            ? "Gagal"
+            : "⬇ Unduh Canvas (PNG)"}
       </button>
 
-      {/* FORM INPUT SIMULASI (Untuk dihubungkan ke backend database Supabase Anda nantinya) */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px", background: "#f8fafc", padding: "16px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-        <h3>Simulasi Manipulasi Data Canvas:</h3>
-        
-        <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "14px", fontWeight: "600" }}>
-          Case ID:
-          <input 
-            type="text" 
-            value={data.caseId} 
-            onChange={(e) => setData({ ...data, caseId: e.target.value })}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #cbd5e1" }}
+      <div className={styles.formGrid}>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Case ID</span>
+          <input
+            type="text"
+            value={caseId}
+            onChange={(e) => setCaseId(e.target.value)}
+            className={styles.input}
+            placeholder="OSM-XXXXX-XXXXXX"
           />
         </label>
 
-        <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "14px", fontWeight: "600" }}>
-          Message (Aspirasi User):
-          <textarea 
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Pesan (dari user)</span>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             rows={3}
-            value={data.message} 
-            onChange={(e) => setData({ ...data, message: e.target.value })}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #cbd5e1", fontFamily: "sans-serif" }}
+            className={styles.textarea}
+            placeholder="Tulis pesan aspirasi di sini..."
           />
         </label>
 
-        {isAdmin && (
-          <label style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "14px", fontWeight: "600", color: "#b91c1c" }}>
-            Balasan Admin (Akan muncul di sebelah tanda ":" dekat Kura-Kura):
-            <input 
-              type="text" 
-              value={data.adminReply} 
-              onChange={(e) => setData({ ...data, adminReply: e.target.value })}
-              placeholder="Tulis balasan resmi OSIS/PAGASKA..."
-              style={{ padding: "8px", borderRadius: "4px", border: "1px solid #fca5a5" }}
-            />
-          </label>
-        )}
+        <label className={`${styles.field} ${styles.fieldAdmin}`}>
+          <span className={`${styles.fieldLabel} ${styles.fieldLabelAdmin}`}>
+            Balasan Admin (di area dekat kura-kura, setelah tanda ":")
+          </span>
+          <textarea
+            value={adminReply}
+            onChange={(e) => setAdminReply(e.target.value)}
+            rows={3}
+            className={`${styles.textarea} ${styles.textareaAdmin}`}
+            placeholder="Tulis balasan resmi OSIS / PAGASKA..."
+          />
+        </label>
       </div>
     </div>
   );
 }
+
+export default CanvasAspirationAdmin;

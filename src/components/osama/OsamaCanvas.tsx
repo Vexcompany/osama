@@ -65,12 +65,11 @@ const LINE_HEIGHT         = 168;   // matches the template's ruled-line spacing
 // Font sizes in native canvas space.
 //   VALUE: the inline value drawn next to the label
 //   WRAP:  the wrapped continuation lines (full width available)
-// The value font is smaller than the template's labels
-// (which are decorative headings at ~150 px) so the
-// value reads as the natural continuation of the label
-// rather than competing with it visually.
-const FONT_SIZE_VALUE = 120;
-const FONT_SIZE_WRAP  = 130;
+// The value font is sized so a 22-character Case ID like
+// "OSM-07820ME75F-WA6KEW" fits comfortably in the inline
+// window after the label without dominating the layout.
+const FONT_SIZE_VALUE = 90;
+const FONT_SIZE_WRAP  = 110;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 

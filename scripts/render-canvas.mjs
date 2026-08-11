@@ -80,9 +80,9 @@ const LAYOUTS = {
     msgBodyStartY: 1699,
     msgLabelY: 0,
     lineHeight: 168,
-    fontSizeValue: 120,
-    fontSizeMsg: 130,
-    fontSizeLabel: 120,
+    fontSizeValue: 90,
+    fontSizeMsg: 110,
+    fontSizeLabel: 90,
     drawLabels: false,
     inlineMode: true,
     // Label measured positions (from template pixels):
