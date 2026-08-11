@@ -80,12 +80,21 @@ const LAYOUTS = {
     msgBodyStartY: 1699,
     msgLabelY: 0,
     lineHeight: 168,
-    fontSizeValue: 140,
-    fontSizeMsg: 150,
-    fontSizeLabel: 140,
+    fontSizeValue: 120,
+    fontSizeMsg: 130,
+    fontSizeLabel: 120,
     drawLabels: false,
     inlineMode: true,
-    valueStartX: 1400,
+    // Label measured positions (from template pixels):
+    //   "Case ID:"  left x = 519, width ≈ 761
+    //   "Message:"  left x = 486, width ≈ 754
+    // The production value is positioned at
+    //   label_left + label_width + gap.
+    caseIdLabelLeft: 519,
+    caseIdLabelWidth: 761,
+    msgLabelLeft: 486,
+    msgLabelWidth: 754,
+    labelValueGap: 0,
     paperRightX: 2870,
     wrapStartX: 680,
     wrapFirstY: 1870,
@@ -148,18 +157,25 @@ async function render({ caseId, message, outputName, layout }) {
     }
   } else {
     // INLINE mode: value next to the template's baked-in
-    // label, on the same ruled line. Wrap continues on
-    // the ruled lines below at the left margin.
+    // label, on the same ruled line. The value's x is
+    // computed from the MEASURED label width:
+    //   valueX = label_left + label_width + gap
+    // Wrap continues on the ruled lines below at the
+    // left margin.
+    const caseIdValueX =
+      layout.caseIdLabelLeft + layout.caseIdLabelWidth + layout.labelValueGap;
     ctx.font = `bold ${layout.fontSizeValue}px "HandelsonTwo"`;
-    ctx.fillText(caseId, layout.valueStartX, layout.caseIdValueY);
+    ctx.fillText(caseId, caseIdValueX, layout.caseIdValueY);
 
-    ctx.font = `${layout.fontSizeValue}px "HandelsonTwo"`;
-    const inlineMaxW = layout.paperRightX - layout.valueStartX;
+    const msgValueX =
+      layout.msgLabelLeft + layout.msgLabelWidth + layout.labelValueGap;
+    const msgValueMaxW = layout.paperRightX - msgValueX;
     const wrapMaxW = layout.paperRightX - layout.wrapStartX;
+    ctx.font = `${layout.fontSizeValue}px "HandelsonTwo"`;
     const m = message.trim();
     if (m.length > 0) {
-      if (ctx.measureText(m).width <= inlineMaxW) {
-        ctx.fillText(m, layout.valueStartX, layout.msgBodyStartY);
+      if (ctx.measureText(m).width <= msgValueMaxW) {
+        ctx.fillText(m, msgValueX, layout.msgBodyStartY);
       } else {
         const allWords = m.split(/\s+/);
         let firstSeg = "";
@@ -169,7 +185,7 @@ async function render({ caseId, message, outputName, layout }) {
             firstSeg.length === 0
               ? allWords[i]
               : `${firstSeg} ${allWords[i]}`;
-          if (ctx.measureText(candidate).width <= inlineMaxW) {
+          if (ctx.measureText(candidate).width <= msgValueMaxW) {
             firstSeg = candidate;
             firstWordCount = i + 1;
           } else {
@@ -180,7 +196,7 @@ async function render({ caseId, message, outputName, layout }) {
           firstSeg = allWords[0];
           firstWordCount = 1;
         }
-        ctx.fillText(firstSeg, layout.valueStartX, layout.msgBodyStartY);
+        ctx.fillText(firstSeg, msgValueX, layout.msgBodyStartY);
 
         const remaining = allWords.slice(firstWordCount).join(" ");
         if (remaining.length > 0) {
