@@ -54,15 +54,18 @@ async function loadFont(name: string, url: string): Promise<void> {
 interface Props {
   caseId?: string;
   message?: string;
+  adminReply?: string;
 }
 
 export function CanvasAspirationAdmin({
   caseId: initialCaseId = "OSM-9821A-K78B29",
   message: initialMessage = "Mohon agar fasilitas lab komputer dan pendingin ruangan di gedung B dapat segera diperbaiki atau diperbarui karena beberapa AC kurang dingin dan sangat mengganggu kenyamanan saat pembelajaran sains.",
+  adminReply: initialAdminReply = "Terima kasih atas masukannya. Fasilitas akan segera diperiksa dan diperbaiki.",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [caseId, setCaseId] = useState(initialCaseId);
   const [message, setMessage] = useState(initialMessage);
+  const [adminReply, setAdminReply] = useState(initialAdminReply);
   const [state, setState] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -144,6 +147,54 @@ export function CanvasAspirationAdmin({
           ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
         }
 
+        // 6. Draw Admin Reply if exists
+        if (adminReply && adminReply.trim()) {
+          currGapIdx += 2; // Leave one blank line gap
+
+          if (currGapIdx < GAP_MIDS.length) {
+            const adminLabel = "Admin: ";
+            const adminLabelWidth = ctx.measureText(adminLabel).width;
+            const adminLine1MaxW = WRAP_MAX_W - adminLabelWidth;
+
+            const adminWords = adminReply.trim().split(/\s+/);
+            let adminLine1Text = "";
+            let aIdx = 0;
+            while (aIdx < adminWords.length) {
+              const testText = adminLine1Text
+                ? `${adminLine1Text} ${adminWords[aIdx]}`
+                : adminWords[aIdx]!;
+              if (ctx.measureText(testText).width <= adminLine1MaxW) {
+                adminLine1Text = testText;
+                aIdx++;
+              } else {
+                break;
+              }
+            }
+
+            ctx.fillText(adminLabel, START_X, GAP_MIDS[currGapIdx]!);
+            ctx.fillText(adminLine1Text, START_X + adminLabelWidth, GAP_MIDS[currGapIdx]!);
+            currGapIdx++;
+
+            const aRemWords = adminWords.slice(aIdx);
+            let aCurrLine = "";
+            for (const w of aRemWords) {
+              const testLine = aCurrLine ? `${aCurrLine} ${w}` : w;
+              if (ctx.measureText(testLine).width <= WRAP_MAX_W) {
+                aCurrLine = testLine;
+              } else {
+                if (aCurrLine && currGapIdx < GAP_MIDS.length) {
+                  ctx.fillText(aCurrLine, START_X, GAP_MIDS[currGapIdx]!);
+                  currGapIdx++;
+                }
+                aCurrLine = w;
+              }
+            }
+            if (aCurrLine && currGapIdx < GAP_MIDS.length) {
+              ctx.fillText(aCurrLine, START_X, GAP_MIDS[currGapIdx]!);
+            }
+          }
+        }
+
         if (!cancelled) setState("ready");
       } catch (err) {
         if (!cancelled) {
@@ -156,7 +207,7 @@ export function CanvasAspirationAdmin({
     return () => {
       cancelled = true;
     };
-  }, [caseId, message]);
+  }, [caseId, message, adminReply]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
@@ -240,6 +291,17 @@ export function CanvasAspirationAdmin({
             rows={4}
             className={styles.textarea}
             placeholder="Tulis pesan aspirasi di sini..."
+          />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Balasan Admin</span>
+          <textarea
+            value={adminReply}
+            onChange={(e) => setAdminReply(e.target.value)}
+            rows={3}
+            className={styles.textarea}
+            placeholder="Tulis balasan admin..."
           />
         </label>
       </div>

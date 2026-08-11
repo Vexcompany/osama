@@ -61,7 +61,7 @@ interface Props {
 
 type CanvasState = "loading" | "ready" | "error";
 
-export function OsamaCanvas({ caseId, message }: Props) {
+export function OsamaCanvas({ caseId, message, adminReply }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<CanvasState>("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -146,6 +146,54 @@ export function OsamaCanvas({ caseId, message }: Props) {
           ctx.fillText(currLine, START_X, GAP_MIDS[currGapIdx]!);
         }
 
+        // 6. Draw Admin Reply if exists
+        if (adminReply && adminReply.trim()) {
+          currGapIdx += 2; // Leave one blank line gap
+
+          if (currGapIdx < GAP_MIDS.length) {
+            const adminLabel = "Admin: ";
+            const adminLabelWidth = ctx.measureText(adminLabel).width;
+            const adminLine1MaxW = WRAP_MAX_W - adminLabelWidth;
+
+            const adminWords = adminReply.trim().split(/\s+/);
+            let adminLine1Text = "";
+            let aIdx = 0;
+            while (aIdx < adminWords.length) {
+              const testText = adminLine1Text
+                ? `${adminLine1Text} ${adminWords[aIdx]}`
+                : adminWords[aIdx]!;
+              if (ctx.measureText(testText).width <= adminLine1MaxW) {
+                adminLine1Text = testText;
+                aIdx++;
+              } else {
+                break;
+              }
+            }
+
+            ctx.fillText(adminLabel, START_X, GAP_MIDS[currGapIdx]!);
+            ctx.fillText(adminLine1Text, START_X + adminLabelWidth, GAP_MIDS[currGapIdx]!);
+            currGapIdx++;
+
+            const aRemWords = adminWords.slice(aIdx);
+            let aCurrLine = "";
+            for (const w of aRemWords) {
+              const testLine = aCurrLine ? `${aCurrLine} ${w}` : w;
+              if (ctx.measureText(testLine).width <= WRAP_MAX_W) {
+                aCurrLine = testLine;
+              } else {
+                if (aCurrLine && currGapIdx < GAP_MIDS.length) {
+                  ctx.fillText(aCurrLine, START_X, GAP_MIDS[currGapIdx]!);
+                  currGapIdx++;
+                }
+                aCurrLine = w;
+              }
+            }
+            if (aCurrLine && currGapIdx < GAP_MIDS.length) {
+              ctx.fillText(aCurrLine, START_X, GAP_MIDS[currGapIdx]!);
+            }
+          }
+        }
+
         if (!cancelled) setState("ready");
       } catch (err) {
         if (!cancelled) {
@@ -159,7 +207,7 @@ export function OsamaCanvas({ caseId, message }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [caseId, message]);
+  }, [caseId, message, adminReply]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
