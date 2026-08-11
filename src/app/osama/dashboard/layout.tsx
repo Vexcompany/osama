@@ -15,6 +15,7 @@ import { redirect } from "next/navigation";
 
 import { assertOsamaAccess } from "@/lib/auth/supabase-server";
 
+import { Subnav } from "./Subnav";
 import { LogoutButton } from "./LogoutButton";
 import styles from "./dashboard.module.css";
 
@@ -42,11 +43,7 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <nav className={styles.subnav}>
-        <Link href="/osama/dashboard" className={styles.subnavLink}>
-          Ringkasan
-        </Link>
-      </nav>
+      <Subnav />
 
       <main className={styles.main}>{children}</main>
     </div>
