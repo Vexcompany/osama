@@ -4,76 +4,51 @@
  * OsamaCanvas — downloadable visual card for OSAMA case detail.
  *
  * Renders the underwater template image onto an HTML Canvas, overlays
- * dynamic Case ID and Message text in Handelson Two, and exposes a
- * PNG download button.
- *
- * Nothing here calls an external API or consumes AI tokens.
- */ 
+ * dynamic Case ID, Message text, and optional Admin Reply in Handelson Two,
+ * perfectly aligned with the notebook paper grid.
+ */
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./OsamaCanvas.module.css";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-/** Exact color for all dynamic text overlaid on the canvas. */
+/** Exact color for dynamic text overlaid on the canvas. */
 const CANVAS_TEXT_COLOR = "#484f90";
+const CANVAS_ADMIN_REPLY_COLOR = "#1d4ed8";
 
-/** Internal canvas width (matches template native width for max sharpness). */
+/** Internal canvas width & height (matches template native resolution). */
 const CANVAS_W = 3375;
-/** Internal canvas height (matches template native height). */
 const CANVAS_H = 6000;
 
-// Text layout (coordinates in native 3375×6000 space).
-// The paper area runs roughly x: 550–2870, y: 1350–4870.
-// The ruled lines on the paper are spaced ~168 px apart
-// (lines at y ≈ 1358, 1527, 1699, 1870, 2035, 2205, 2379, …).
-//
-// The template already has the labels "Case ID:" and
-// "Message:" baked in on the first two ruled lines of
-// the paper. We do NOT redraw those labels — the template
-// owns them. Instead we draw the dynamic values NEXT TO
-// each label on the same ruled line, then continue the
-// message body on the ruled lines below.
-//
-// Where the template labels actually sit (measured from
-// the template pixels, with HandelsonTwo at a large
-// baked-in size — the labels are decorative headings,
-// not body text):
-//
-//   Label        left edge   right edge   width
-//   "Case ID:"   x ≈ 519     x ≈ 1280    ≈ 761 px
-//   "Message:"   x ≈ 486     x ≈ 1240    ≈ 754 px
-//
-// We position the value at label_left + label_width +
-// a small visual gap, so the text reads like a natural
-// inline flow ("Case ID: <value>"). The position is
-// MEASURED, not a fixed x — the production code re-measures
-// "Case ID:" and "Message:" with the same font at runtime
-// and uses the measured width to compute the value's x.
-const CASE_ID_LABEL_LEFT  = 519;
-const CASE_ID_LABEL_WIDTH = 761;   // "Case ID:" measured width at the template's font size
-const MSG_LABEL_LEFT      = 486;
-const MSG_LABEL_WIDTH     = 754;   // "Message:" measured width at the template's font size
-const LABEL_VALUE_GAP     = 0;     // no extra gap — value starts where label ends
-const PAPER_RIGHT_X       = 2870;
-const WRAP_START_X        = 680;
-const CASE_ID_VALUE_Y     = 1527;  // same ruled line as template "Case ID:"
-const MSG_VALUE_Y         = 1699;  // same ruled line as template "Message:"
-const WRAP_FIRST_Y        = 1870;  // first ruled line for wrapped message
-const LINE_HEIGHT         = 168;   // matches the template's ruled-line spacing
+// Grid layout aligned with public/kak-taksaka/osama/canvas-template.jpg
+// Line 1: Baked-in "Case ID:" label (X: 554–1094, Y: 1360)
+const CASE_ID_VALUE_X = 1120;
+const CASE_ID_VALUE_Y = 1360;
 
-// Font sizes in native canvas space.
-//   VALUE: the inline value drawn next to the label
-//   WRAP:  the wrapped continuation lines (full width available)
-// The value font is sized so a 22-character Case ID like
-// "OSM-07820ME75F-WA6KEW" fits comfortably in the inline
-// window after the label without dominating the layout.
+// Line 2: Baked-in "Message:" label (X: 468–1299, Y: 1530)
+const MSG_VALUE_X = 1320;
+const MSG_VALUE_Y = 1530;
+
+const PAPER_RIGHT_X = 2870;
+const WRAP_START_X = 700;
+
+// Line Y positions for message body continuation (notebook paper ruled lines)
+const MSG_LINE_YS = [1703, 1871, 2039, 2209, 2383, 2548];
+
+// Admin reply slot near the turtle (baked-in ":" colon is at X: 645, Y: 2715)
+const ADMIN_REPLY_START_X = 680;
+const ADMIN_REPLY_LINE_YS = [
+  2715, 2873, 3051, 3219, 3389, 3559, 3730, 3903, 4068, 4238,
+];
+
+// Font sizes in native canvas space
 const FONT_SIZE_VALUE = 90;
-const FONT_SIZE_WRAP  = 110;
+const FONT_SIZE_WRAP = 95;
+const FONT_SIZE_ADMIN_REPLY = 95;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-/** Load an Image from a URL and resolve when ready. */
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -83,17 +58,12 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Load a FontFace and add it to document.fonts. */
 async function loadFont(name: string, url: string): Promise<void> {
   const font = new FontFace(name, `url(${url})`);
   const loaded = await font.load();
   document.fonts.add(loaded);
 }
 
-/**
- * Wrap text into lines that fit within maxWidth.
- * Handles explicit newlines in the source string.
- */
 function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -103,7 +73,7 @@ function wrapText(
   const paragraphs = text.split(/\r?\n/);
   for (const para of paragraphs) {
     if (para.trim() === "") {
-      result.push(""); // preserve blank lines
+      result.push("");
       continue;
     }
     const words = para.split(" ");
@@ -127,16 +97,16 @@ function wrapText(
 interface Props {
   caseId: string;
   message: string;
+  adminReply?: string | null;
 }
 
 type CanvasState = "loading" | "ready" | "error";
 
-export function OsamaCanvas({ caseId, message }: Props) {
+export function OsamaCanvas({ caseId, message, adminReply }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<CanvasState>("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // Render the canvas whenever caseId or message change.
   useEffect(() => {
     let cancelled = false;
 
@@ -145,7 +115,6 @@ export function OsamaCanvas({ caseId, message }: Props) {
       setErrorMsg("");
 
       try {
-        // 1. Load assets in parallel.
         const [templateImg] = await Promise.all([
           loadImage("/kak-taksaka/osama/canvas-template.jpg"),
           loadFont("HandelsonTwo", "/kak-taksaka/osama/fonts/handelson-two.otf"),
@@ -153,52 +122,34 @@ export function OsamaCanvas({ caseId, message }: Props) {
 
         if (cancelled) return;
 
-        // 2. Get canvas context.
         const canvas = canvasRef.current;
         if (!canvas) throw new Error("Canvas element not available");
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Failed to get 2D context");
 
-        canvas.width  = CANVAS_W;
+        canvas.width = CANVAS_W;
         canvas.height = CANVAS_H;
 
-        // 3. Draw background template.
+        // 1. Draw background template
         ctx.drawImage(templateImg, 0, 0, CANVAS_W, CANVAS_H);
 
-        // 4. Set shared text style.
+        // 2. Base text styles
         ctx.fillStyle = CANVAS_TEXT_COLOR;
         ctx.textBaseline = "alphabetic";
 
-        // 5. Draw the case id value NEXT TO the template's
-        //    baked-in "Case ID:" label, on the same ruled
-        //    line. The value's x position is computed from
-        //    the measured label width: label_left + label_width
-        //    + gap, so the text reads as a natural inline
-        //    flow ("Case ID: <value>") without a fixed x
-        //    that would force the value far to the right.
-        const caseIdValueX =
-          CASE_ID_LABEL_LEFT + CASE_ID_LABEL_WIDTH + LABEL_VALUE_GAP;
-        const caseIdValueMaxW = PAPER_RIGHT_X - caseIdValueX;
+        // 3. Draw Case ID value on Line 1 next to "Case ID:" label
         ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        ctx.fillText(caseId, caseIdValueX, CASE_ID_VALUE_Y);
+        ctx.fillText(caseId, CASE_ID_VALUE_X, CASE_ID_VALUE_Y);
 
-        // 6. Draw the message value NEXT TO the template's
-        //    baked-in "Message:" label, on the same ruled
-        //    line, using the SAME label-measured positioning
-        //    logic. If the message fits in the inline
-        //    window it all sits on the label line; if not,
-        //    the first segment is on the label line and the
-        //    rest wraps to the ruled lines below at the
-        //    left margin so it follows the notebook grid.
-        const msgValueX =
-          MSG_LABEL_LEFT + MSG_LABEL_WIDTH + LABEL_VALUE_GAP;
-        const msgValueMaxW = PAPER_RIGHT_X - msgValueX;
+        // 4. Draw Message value on Line 2 next to "Message:" label, and wrap continuation below
+        const msgInlineMaxW = PAPER_RIGHT_X - MSG_VALUE_X;
         const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
+
         ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
         const m = message.trim();
         if (m.length > 0) {
-          if (ctx.measureText(m).width <= msgValueMaxW) {
-            ctx.fillText(m, msgValueX, MSG_VALUE_Y);
+          if (ctx.measureText(m).width <= msgInlineMaxW) {
+            ctx.fillText(m, MSG_VALUE_X, MSG_VALUE_Y);
           } else {
             const allWords = m.split(/\s+/);
             let firstSeg = "";
@@ -208,7 +159,7 @@ export function OsamaCanvas({ caseId, message }: Props) {
                 firstSeg.length === 0
                   ? allWords[i]!
                   : `${firstSeg} ${allWords[i]}`;
-              if (ctx.measureText(candidate).width <= msgValueMaxW) {
+              if (ctx.measureText(candidate).width <= msgInlineMaxW) {
                 firstSeg = candidate;
                 firstWordCount = i + 1;
               } else {
@@ -219,22 +170,41 @@ export function OsamaCanvas({ caseId, message }: Props) {
               firstSeg = allWords[0]!;
               firstWordCount = 1;
             }
-            ctx.fillText(firstSeg, msgValueX, MSG_VALUE_Y);
+            ctx.fillText(firstSeg, MSG_VALUE_X, MSG_VALUE_Y);
 
             const remaining = allWords.slice(firstWordCount).join(" ");
             if (remaining.length > 0) {
               ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
               const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
-              let y = WRAP_FIRST_Y;
-              for (const line of wrappedLines) {
-                ctx.fillText(line, WRAP_START_X, y);
-                y += LINE_HEIGHT;
-                if (y > 4750) {
-                  ctx.fillText("…", WRAP_START_X, y);
-                  break;
-                }
+              for (
+                let i = 0;
+                i < Math.min(wrappedLines.length, MSG_LINE_YS.length);
+                i++
+              ) {
+                ctx.fillText(wrappedLines[i]!, WRAP_START_X, MSG_LINE_YS[i]!);
               }
             }
+          }
+        }
+
+        // 5. Draw Admin Reply near the turtle after the baked-in ":" colon indicator (X=645, Y=2715)
+        const r = adminReply ? adminReply.trim() : "";
+        if (r.length > 0) {
+          ctx.fillStyle = CANVAS_ADMIN_REPLY_COLOR;
+          ctx.font = `${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
+          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_START_X;
+          const replyLines = wrapText(ctx, r, replyMaxW);
+
+          for (
+            let i = 0;
+            i < Math.min(replyLines.length, ADMIN_REPLY_LINE_YS.length);
+            i++
+          ) {
+            ctx.fillText(
+              replyLines[i]!,
+              ADMIN_REPLY_START_X,
+              ADMIN_REPLY_LINE_YS[i]!,
+            );
           }
         }
 
@@ -248,30 +218,25 @@ export function OsamaCanvas({ caseId, message }: Props) {
     }
 
     render();
-    return () => { cancelled = true; };
-  }, [caseId, message]);
-
-  // ── download handler ────────────────────────────────────────────────────────
+    return () => {
+      cancelled = true;
+    };
+  }, [caseId, message, adminReply]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
     if (!canvas || state !== "ready") return;
 
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `OSAMA-${caseId}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      "image/png",
-    );
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `OSAMA-${caseId}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
   }
-
-  // ── render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className={styles.wrapper}>
@@ -283,7 +248,11 @@ export function OsamaCanvas({ caseId, message }: Props) {
           disabled={state !== "ready"}
           aria-label={`Unduh canvas aspirasi ${caseId} sebagai gambar PNG`}
         >
-          {state === "loading" ? "Memuat…" : state === "error" ? "Gagal" : "⬇ Unduh Canvas"}
+          {state === "loading"
+            ? "Memuat…"
+            : state === "error"
+              ? "Gagal"
+              : "⬇ Unduh Canvas"}
         </button>
       </div>
 
@@ -310,3 +279,4 @@ export function OsamaCanvas({ caseId, message }: Props) {
     </div>
   );
 }
+

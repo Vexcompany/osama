@@ -47,6 +47,10 @@ alter table public.aspirations
   alter column updated_at set default now(),
   alter column updated_at set not null;
 
+-- 3.5. Add admin_reply column (idempotent).
+alter table public.aspirations
+  add column if not exists admin_reply text;
+
 -- 4. Trigger to keep updated_at fresh on every UPDATE.
 create or replace function public.set_updated_at()
 returns trigger

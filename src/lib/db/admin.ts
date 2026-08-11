@@ -26,6 +26,7 @@ export interface AspirationRow {
   message: string;
   anonymous: boolean;
   status: AspirationStatus;
+  adminReply?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +36,7 @@ export interface AspirationListItem {
   topic: string;
   message: string;
   status: AspirationStatus;
+  adminReply?: string | null;
   createdAt: string;
 }
 
@@ -64,7 +66,7 @@ export async function listAspirations(
   const supabase = getSupabaseAdmin();
   let query = supabase
     .from("aspirations")
-    .select("case_id, topic, message, status, created_at")
+    .select("case_id, topic, message, status, admin_reply, created_at")
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 100);
 
@@ -79,6 +81,7 @@ export async function listAspirations(
     topic: r.topic as string,
     message: r.message as string,
     status: r.status as AspirationStatus,
+    adminReply: (r.admin_reply as string | null) ?? null,
     createdAt: r.created_at as string,
   }));
 }
@@ -122,7 +125,7 @@ export async function getAspirationByCaseId(
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("aspirations")
-    .select("case_id, topic, message, anonymous, status, created_at, updated_at")
+    .select("case_id, topic, message, anonymous, status, admin_reply, created_at, updated_at")
     .eq("case_id", caseId)
     .maybeSingle();
 
@@ -137,6 +140,7 @@ export async function getAspirationByCaseId(
     message: data.message as string,
     anonymous: data.anonymous as boolean,
     status: data.status as AspirationStatus,
+    adminReply: (data.admin_reply as string | null) ?? null,
     createdAt: data.created_at as string,
     updatedAt: (data.updated_at as string) ?? (data.created_at as string),
   };
@@ -170,3 +174,20 @@ export async function updateStatus(
   }
   return { ok: true };
 }
+
+export async function updateAdminReply(
+  caseId: string,
+  reply: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("aspirations")
+    .update({ admin_reply: reply, updated_at: new Date().toISOString() })
+    .eq("case_id", caseId);
+
+  if (error) {
+    return { ok: false, reason: error.message };
+  }
+  return { ok: true };
+}
+

@@ -33,48 +33,32 @@ import styles from "./CanvasAspirationAdmin.module.css";
 const CANVAS_W = 3375;
 const CANVAS_H = 6000;
 
-// Paper ruled-line spacing ≈ 168 px. Y positions of the
-// template's labels and the area we use for the admin reply.
-const CASE_ID_VALUE_Y  = 1527; // ruled line 2 (template "Case ID:" baked here)
-const MSG_VALUE_Y      = 1699; // ruled line 3 (template "Message:" baked here)
-const ADMIN_REPLY_Y    = 2714; // ruled line near the turtle
+// Grid layout aligned with public/kak-taksaka/osama/canvas-template.jpg
+const CASE_ID_VALUE_X = 1120;
+const CASE_ID_VALUE_Y = 1360;
 
-// Measured positions of the template's baked-in labels.
-// "Case ID:"  left x ≈ 519, right x ≈ 1280  (width ≈ 761)
-// "Message:"  left x ≈ 486, right x ≈ 1240  (width ≈ 754)
-const CASE_ID_LABEL_LEFT  = 519;
-const CASE_ID_LABEL_WIDTH = 761;
-const MSG_LABEL_LEFT      = 486;
-const MSG_LABEL_WIDTH     = 754;
-const LABEL_VALUE_GAP     = 0;
-const WRAP_START_X        = 680;
-const PAPER_RIGHT_X       = 2870;
+const MSG_VALUE_X = 1320;
+const MSG_VALUE_Y = 1530;
 
-// Admin reply area: a small ":" marker on the ruled line
-// near the turtle, then the reply text. The marker is a
-// small character we draw at the start of the slot so the
-// admin can see where the reply begins, matching what the
-// user described ("ada tanda ':'" near the turtle).
-const ADMIN_REPLY_MARKER_X      = 730;
-const ADMIN_REPLY_MARKER_GLYPH  = ":";
-const ADMIN_REPLY_TEXT_X        = 800;
+const PAPER_RIGHT_X = 2870;
+const WRAP_START_X = 700;
 
-// Font sizes in native canvas space.
-const FONT_SIZE_VALUE       = 90;
-const FONT_SIZE_WRAP        = 110;
-const FONT_SIZE_ADMIN_LABEL = 80;  // "Balasan Admin:" header above the reply
-const FONT_SIZE_ADMIN_REPLY = 100; // the reply text itself
+const MSG_LINE_YS = [1703, 1871, 2039, 2209, 2383, 2548];
 
-// Wrap width for the message body when it overflows the
-// inline window. Same as in the production canvas.
-const MSG_INLINE_MAX_W_FOR_FIRST_SEG = 1100; // smaller than OSAMA case to keep first segment compact
+const ADMIN_REPLY_START_X = 680;
+const ADMIN_REPLY_LINE_YS = [
+  2715, 2873, 3051, 3219, 3389, 3559, 3730, 3903, 4068, 4238,
+];
 
-const TEXT_COLOR       = "#484f90";
-const ADMIN_TEXT_COLOR = "#1d4ed8"; // distinct color for the admin reply
-const ADMIN_LABEL_COLOR = "#0f172a";
+const FONT_SIZE_VALUE = 90;
+const FONT_SIZE_WRAP = 95;
+const FONT_SIZE_ADMIN_REPLY = 95;
+
+const TEXT_COLOR = "#484f90";
+const ADMIN_TEXT_COLOR = "#1d4ed8";
 
 const TEMPLATE_URL = "/kak-taksaka/osama/canvas-template.jpg";
-const FONT_URL     = "/kak-taksaka/osama/fonts/handelson-two.otf";
+const FONT_URL = "/kak-taksaka/osama/fonts/handelson-two.otf";
 
 // ─── helpers ─────────────────────────────────────────────────────
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -158,7 +142,7 @@ export function CanvasAspirationAdmin({
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Failed to get 2D context");
 
-        canvas.width  = CANVAS_W;
+        canvas.width = CANVAS_W;
         canvas.height = CANVAS_H;
 
         // Background.
@@ -167,22 +151,18 @@ export function CanvasAspirationAdmin({
         ctx.fillStyle = TEXT_COLOR;
         ctx.textBaseline = "alphabetic";
 
-        // 1. Case ID value: inline next to the template's
-        //    baked-in "Case ID:" label.
-        const caseIdValueX =
-          CASE_ID_LABEL_LEFT + CASE_ID_LABEL_WIDTH + LABEL_VALUE_GAP;
+        // 1. Case ID value on Line 1 next to "Case ID:" label
         ctx.font = `bold ${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
-        ctx.fillText(caseId, caseIdValueX, CASE_ID_VALUE_Y);
+        ctx.fillText(caseId, CASE_ID_VALUE_X, CASE_ID_VALUE_Y);
 
-        // 2. Message value: inline next to "Message:".
-        const msgValueX =
-          MSG_LABEL_LEFT + MSG_LABEL_WIDTH + LABEL_VALUE_GAP;
-        const msgValueMaxW = PAPER_RIGHT_X - msgValueX;
+        // 2. Message value on Line 2 next to "Message:" label, wrap below
+        const msgInlineMaxW = PAPER_RIGHT_X - MSG_VALUE_X;
+        const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
         ctx.font = `${FONT_SIZE_VALUE}px "HandelsonTwo", cursive`;
         const m = message.trim();
         if (m.length > 0) {
-          if (ctx.measureText(m).width <= msgValueMaxW) {
-            ctx.fillText(m, msgValueX, MSG_VALUE_Y);
+          if (ctx.measureText(m).width <= msgInlineMaxW) {
+            ctx.fillText(m, MSG_VALUE_X, MSG_VALUE_Y);
           } else {
             const allWords = m.split(/\s+/);
             let firstSeg = "";
@@ -192,7 +172,7 @@ export function CanvasAspirationAdmin({
                 firstSeg.length === 0
                   ? allWords[i]!
                   : `${firstSeg} ${allWords[i]}`;
-              if (ctx.measureText(candidate).width <= msgValueMaxW) {
+              if (ctx.measureText(candidate).width <= msgInlineMaxW) {
                 firstSeg = candidate;
                 firstWordCount = i + 1;
               } else {
@@ -203,61 +183,39 @@ export function CanvasAspirationAdmin({
               firstSeg = allWords[0]!;
               firstWordCount = 1;
             }
-            ctx.fillText(firstSeg, msgValueX, MSG_VALUE_Y);
+            ctx.fillText(firstSeg, MSG_VALUE_X, MSG_VALUE_Y);
             const remaining = allWords.slice(firstWordCount).join(" ");
             if (remaining.length > 0) {
               ctx.font = `${FONT_SIZE_WRAP}px "HandelsonTwo", cursive`;
-              const wrapMaxW = PAPER_RIGHT_X - WRAP_START_X;
               const wrappedLines = wrapText(ctx, remaining, wrapMaxW);
-              // The next empty ruled line is 168 px below
-              // the Message line; that's y = 1699 + 168 = 1867.
-              let y = MSG_VALUE_Y + 168;
-              for (const line of wrappedLines) {
-                ctx.fillText(line, WRAP_START_X, y);
-                y += 168;
-                if (y > 4750) {
-                  ctx.fillText("…", WRAP_START_X, y);
-                  break;
-                }
+              for (
+                let i = 0;
+                i < Math.min(wrappedLines.length, MSG_LINE_YS.length);
+                i++
+              ) {
+                ctx.fillText(wrappedLines[i]!, WRAP_START_X, MSG_LINE_YS[i]!);
               }
             }
           }
         }
 
-        // 3. Admin reply — drawn in the area near the turtle,
-        //    starting with a small ":" marker on the ruled
-        //    line so the user can see where the reply begins.
-        if (adminReply.trim().length > 0) {
-          // Label above the reply.
-          ctx.fillStyle = ADMIN_LABEL_COLOR;
-          ctx.font = `bold ${FONT_SIZE_ADMIN_LABEL}px "HandelsonTwo", cursive`;
-          ctx.fillText(
-            "Balasan Admin:",
-            WRAP_START_X,
-            ADMIN_REPLY_Y - 100,
-          );
-          // Marker (the ":" sign on the ruled line near the
-          // turtle).
+        // 3. Admin reply — drawn near the turtle after the baked-in ":" colon indicator (X=645, Y=2715)
+        const r = adminReply.trim();
+        if (r.length > 0) {
           ctx.fillStyle = ADMIN_TEXT_COLOR;
-          ctx.font = `bold ${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
-          ctx.fillText(
-            ADMIN_REPLY_MARKER_GLYPH,
-            ADMIN_REPLY_MARKER_X,
-            ADMIN_REPLY_Y,
-          );
-          // Reply text. Wrap to multiple lines if it doesn't
-          // fit on one ruled line.
-          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_TEXT_X;
           ctx.font = `${FONT_SIZE_ADMIN_REPLY}px "HandelsonTwo", cursive`;
-          const replyLines = wrapText(ctx, adminReply, replyMaxW);
-          let replyY = ADMIN_REPLY_Y;
-          for (const line of replyLines) {
-            ctx.fillText(line, ADMIN_REPLY_TEXT_X, replyY);
-            replyY += 168;
-            if (replyY > 4500) {
-              ctx.fillText("…", ADMIN_REPLY_TEXT_X, replyY);
-              break;
-            }
+          const replyMaxW = PAPER_RIGHT_X - ADMIN_REPLY_START_X;
+          const replyLines = wrapText(ctx, r, replyMaxW);
+          for (
+            let i = 0;
+            i < Math.min(replyLines.length, ADMIN_REPLY_LINE_YS.length);
+            i++
+          ) {
+            ctx.fillText(
+              replyLines[i]!,
+              ADMIN_REPLY_START_X,
+              ADMIN_REPLY_LINE_YS[i]!,
+            );
           }
         }
 

@@ -8,9 +8,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getAspirationByCaseId } from "@/lib/db/admin";
-import { OsamaCanvas } from "@/components/osama/OsamaCanvas";
-
 import { CaseActions } from "./CaseActions";
+import { AdminReplySection } from "./AdminReplySection";
 import styles from "./case.module.css";
 
 export const dynamic = "force-dynamic";
@@ -94,8 +93,13 @@ export default async function CaseDetailPage({
 
         <CaseActions caseId={row.caseId} currentStatus={row.status} />
 
-        <OsamaCanvas caseId={row.caseId} message={row.message} />
+        <AdminReplySection
+          caseId={row.caseId}
+          message={row.message}
+          initialAdminReply={row.adminReply}
+        />
       </div>
     </div>
   );
 }
+
