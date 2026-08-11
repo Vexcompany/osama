@@ -15,6 +15,7 @@
 import { AspirationForm } from "@/components/aspiration/AspirationForm";
 import { KakTaksaka } from "@/components/kak-taksaka/KakTaksaka";
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
+import { CanvasAspirationAdmin } from "@/components/aspiration/CanvasAspirationAdmin";
 import { Navbar } from "@/components/nav/Navbar";
 import styles from "./page.module.css";
 
