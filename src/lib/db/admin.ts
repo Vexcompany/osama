@@ -66,7 +66,7 @@ export async function listAspirations(
   const supabase = getSupabaseAdmin();
   let query = supabase
     .from("aspirations")
-    .select("case_id, topic, message, status, admin_reply, created_at")
+    .select("case_id, topic, message, status, created_at")
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 100);
 
@@ -81,7 +81,6 @@ export async function listAspirations(
     topic: r.topic as string,
     message: r.message as string,
     status: r.status as AspirationStatus,
-    adminReply: (r.admin_reply as string | null) ?? null,
     createdAt: r.created_at as string,
   }));
 }
@@ -123,11 +122,21 @@ export async function getAspirationByCaseId(
   caseId: string,
 ): Promise<AspirationRow | null> {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("aspirations")
     .select("case_id, topic, message, anonymous, status, admin_reply, created_at, updated_at")
     .eq("case_id", caseId)
     .maybeSingle();
+
+  if (error && error.message.includes("admin_reply")) {
+    const fallback = await supabase
+      .from("aspirations")
+      .select("case_id, topic, message, anonymous, status, created_at, updated_at")
+      .eq("case_id", caseId)
+      .maybeSingle();
+    data = fallback.data ? { ...fallback.data, admin_reply: null } : null;
+    error = fallback.error;
+  }
 
   if (error) {
     throw new Error(`getAspirationByCaseId failed: ${error.message}`);
