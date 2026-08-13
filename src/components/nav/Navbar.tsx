@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./Navbar.module.css";
 
 const NAV_LINKS = [
@@ -10,8 +10,48 @@ const NAV_LINKS = [
   { label: "Tentang OSIS", href: "#tentang" },
 ];
 
+// Section IDs in document order, for active detection
+const SECTION_IDS = ["hero", "keunggulan", "aspirasi", "rules"];
+
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState("#hero");
+  const [scrolled, setScrolled] = useState(false);
+
+  // Detect active section via IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost section that is intersecting
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          const id = visible[0].target.id;
+          // Map section id back to nav href
+          if (id === "tentang" || id === "aspirasi") {
+            setActiveHref("#aspirasi");
+          } else {
+            setActiveHref(`#${id}`);
+          }
+        }
+      },
+      { threshold: 0.3, rootMargin: "-60px 0px -40% 0px" }
+    );
+
+    const sections = [...SECTION_IDS, "tentang"].map((id) =>
+      document.getElementById(id)
+    );
+    sections.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Detect scroll for navbar opacity
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -24,7 +64,10 @@ export function Navbar() {
 
   return (
     <>
-      <nav className={styles.nav} aria-label="Navigasi utama">
+      <nav
+        className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}
+        aria-label="Navigasi utama"
+      >
         <div className={styles.inner}>
           {/* Logo */}
           <a
@@ -60,8 +103,9 @@ export function Navbar() {
               <a
                 key={l.href}
                 href={l.href}
-                className={styles.link}
+                className={`${styles.link} ${activeHref === l.href ? styles.linkActive : ""}`}
                 role="listitem"
+                aria-current={activeHref === l.href ? "page" : undefined}
                 onClick={(e) => handleLinkClick(e, l.href)}
               >
                 {l.label}
@@ -114,7 +158,8 @@ export function Navbar() {
             <a
               key={l.href}
               href={l.href}
-              className={styles.drawerLink}
+              className={`${styles.drawerLink} ${activeHref === l.href ? styles.drawerLinkActive : ""}`}
+              aria-current={activeHref === l.href ? "page" : undefined}
               onClick={(e) => handleLinkClick(e, l.href)}
             >
               {l.label}

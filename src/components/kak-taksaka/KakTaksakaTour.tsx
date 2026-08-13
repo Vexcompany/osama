@@ -3,42 +3,21 @@
 /**
  * Kak Taksaka tour — spotlight walkthrough.
  *
- * Implementation notes:
- *   - Spotlight is dynamic: it measures the target with
- *     getBoundingClientRect() on mount, on resize, on scroll, and
- *     on a ResizeObserver against the target. NO hardcoded
- *     coordinates.
- *   - The dim layer is a single full-viewport element with a CSS
- *     box-shadow "cutout" using the target's rect. No canvas, no
- *     WebGL, no animation loop.
- *   - The dialog is positioned to one of the requested placements
- *     (top/bottom/left/right) and clamped to the viewport on small
- *     screens so it never goes off-screen.
+ * V4.0 — SMART SCROLL + UNDERWATER POLISH
  *
- *   - If a target can't be found we advance to the next step rather
- *     than block the tour.
+ * Smart scroll: before spotlight activates, we:
+ *   1. Find the target element
+ *   2. Check if it's visible in viewport (with breathing room)
+ *   3. If not, smooth-scroll to it with offset
+ *   4. Wait for scroll to stabilize (via rAF + position check)
+ *   5. Then measure with getBoundingClientRect()
+ *   6. Activate spotlight + show dialog
  *
- *   - All copy is hardcoded locally (TAKSAKA_TOUR_DIALOGS in
- *     kakTaksakaRules.ts). The tour never makes an API call.
- *     /api/taksaka is reserved for the AI chat.
+ * Spotlight tracks target on: scroll, resize, orientationchange.
+ * Uses throttled rAF for recalibration. NO hardcoded pixel coords.
  *
- *   - V3.2: dialog visibility is robust. The first render DOES
- *     measure synchronously (useLayoutEffect runs before paint),
- *     so the dialog is positioned correctly on the very first
- *     frame. No `visibility: hidden` race that previously kept
- *     the dialog invisible in some browsers.
- *
- * Lifecycle contract (V3.1):
- *   - All window/document listeners (resize, scroll, orientation,
- *     keydown) are torn down in a single unmount effect. No leaked
- *     listeners.
- *   - On unmount we blur whatever was focused inside the tour so
- *     focus cleanly returns to the document. autoFocus on the
- *     primary button is the only intentional focus call.
- *   - `role="dialog"` WITHOUT `aria-modal="true"`. The tour is
- *     not a true modal — it has no real focus trap — so the
- *     aria-modal hint would leak modal semantics into the
- *     browser even after unmount.
+ * Dialog positioning: auto-flips side to stay in viewport.
+ * Tooltip never clips out or covers target.
  */
 import {
   useCallback,
@@ -56,10 +35,12 @@ import {
 } from "./kakTaksakaRules";
 import styles from "./KakTaksakaTour.module.css";
 
-const SPOTLIGHT_PADDING = 8;
+const SPOTLIGHT_PADDING = 10;
 const SPOTLIGHT_RADIUS = 16;
-const VIEWPORT_MARGIN = 12;
-const DIALOG_GAP = 14;
+const VIEWPORT_MARGIN = 14;
+const DIALOG_GAP = 16;
+// Breathing room above/below target when scrolling into view
+const SCROLL_BREATHING = 80;
 
 interface RectBox {
   top: number;
@@ -99,6 +80,71 @@ function readRect(el: Element | null): RectBox | null {
 
 function readViewport(): Viewport {
   return { w: window.innerWidth, h: window.innerHeight };
+}
+
+/**
+ * Check whether the target has adequate breathing room in viewport.
+ * Returns true if the element is fully visible + has breathing room.
+ */
+function isWellVisible(rect: RectBox, vp: Viewport): boolean {
+  return (
+    rect.top >= SCROLL_BREATHING &&
+    rect.bottom <= vp.h - SCROLL_BREATHING &&
+    rect.left >= 0 &&
+    rect.right <= vp.w
+  );
+}
+
+/**
+ * Scroll the target into view with breathing room, then wait for
+ * position to stabilize. Returns a Promise that resolves when done.
+ */
+function scrollToTarget(el: Element, vp: Viewport): Promise<void> {
+  return new Promise((resolve) => {
+    const rect = el.getBoundingClientRect();
+    if (isWellVisible(rect, vp)) {
+      resolve();
+      return;
+    }
+
+    // Calculate scroll offset: center the element vertically with breathing room
+    const elementTop = rect.top + window.scrollY;
+    const elementHeight = rect.height;
+    const targetScrollY = elementTop - (vp.h / 2) + (elementHeight / 2);
+    const clamped = Math.max(0, targetScrollY);
+
+    window.scrollTo({ top: clamped, behavior: "smooth" });
+
+    // Wait for scroll to stabilize: poll until position stops changing
+    let lastY = window.scrollY;
+    let stableCount = 0;
+    const STABLE_FRAMES = 4;
+    const MAX_FRAMES = 60; // ~1 second timeout
+    let frames = 0;
+
+    function checkStable() {
+      const currentY = window.scrollY;
+      if (Math.abs(currentY - lastY) < 1) {
+        stableCount++;
+        if (stableCount >= STABLE_FRAMES) {
+          resolve();
+          return;
+        }
+      } else {
+        stableCount = 0;
+      }
+      lastY = currentY;
+      frames++;
+      if (frames >= MAX_FRAMES) {
+        resolve(); // timeout fallback
+        return;
+      }
+      requestAnimationFrame(checkStable);
+    }
+
+    // Start checking after a brief delay to let scroll begin
+    setTimeout(() => requestAnimationFrame(checkStable), 50);
+  });
 }
 
 function placementFor(rect: RectBox, vp: Viewport, dialog: DialogSize) {
@@ -157,16 +203,19 @@ function placementFor(rect: RectBox, vp: Viewport, dialog: DialogSize) {
       vp.h - dialog.h - VIEWPORT_MARGIN,
     );
   }
+
+  // Final clamp: ensure dialog never exits viewport
+  dialogLeft = clamp(dialogLeft, VIEWPORT_MARGIN, vp.w - dialog.w - VIEWPORT_MARGIN);
+  dialogTop = clamp(dialogTop, VIEWPORT_MARGIN, vp.h - dialog.h - VIEWPORT_MARGIN);
+
   return { side, dialogLeft, dialogTop };
 }
 
 export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
-  // Initial state computes the placement synchronously on the very
-  // first render (browser only) so the dialog has the correct
-  // position on the first frame. The measure useLayoutEffect
-  // below updates the same state on subsequent renders and on
-  // scroll / resize.
   const [stepIndex, setStepIndex] = useState(0);
+  // scrolling: true while we're waiting for auto-scroll to complete
+  const [scrolling, setScrolling] = useState(false);
+
   const initialStep = TOUR_STEPS[0]!;
   const initialMeasurement =
     typeof window === "undefined"
@@ -175,13 +224,11 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
           const el = document.querySelector(initialStep.target);
           const rect = readRect(el);
           const viewport = readViewport();
-          // Approximate initial dialog size to avoid a one-frame
-          // flicker. Real size is measured synchronously in the
-          // useLayoutEffect below.
           const w = Math.min(360, viewport.w - 24);
           const h = 200;
           return { rect, viewport, dialogSize: { w, h } };
         })();
+
   const [rect, setRect] = useState<RectBox | null>(initialMeasurement.rect);
   const [viewport, setViewport] = useState<Viewport>(initialMeasurement.viewport);
   const [dialogSize, setDialogSize] = useState<DialogSize>(
@@ -189,15 +236,15 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
   );
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const targetRef = useRef<Element | null>(null);
-  // Remember the element that was focused before the tour opened.
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const rafIdRef = useRef<number | null>(null);
 
   const step: TourStep | null = useMemo(
     () => TOUR_STEPS[stepIndex] ?? null,
     [stepIndex],
   );
 
-  // ── Lifecycle: mount — capture focus + mark body + initial measure ──
+  // Mount
   useEffect(() => {
     const active = document.activeElement;
     previouslyFocusedRef.current =
@@ -208,9 +255,10 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     };
   }, []);
 
-  // ── Lifecycle: unmount — single authoritative cleanup ──
+  // Unmount cleanup
   useEffect(() => {
     return () => {
+      if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
       const active = document.activeElement;
       if (
         active instanceof HTMLElement &&
@@ -229,44 +277,81 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     };
   }, []);
 
-  // ── Initial measurement: useLayoutEffect runs before paint, so
-  //    the first render has correct rect / viewport / dialog
-  //    placement. No `visibility: hidden` race.
-  useLayoutEffect(() => {
+  // ── SMART SCROLL + MEASURE on step change ──────────────────────────
+  useEffect(() => {
     if (!step) {
       setRect(null);
       return;
     }
+
     const el = document.querySelector(step.target);
     targetRef.current = el;
+
     if (!el) {
       setRect(null);
       setViewport(readViewport());
       return;
     }
-    // Synchronous first measure, before paint.
-    setRect(readRect(el));
-    setViewport(readViewport());
 
-    const update = () => {
-      setRect(readRect(el));
-      setViewport(readViewport());
-    };
+    const vp = readViewport();
+    const currentRect = readRect(el);
 
-    const ro = new ResizeObserver(() => update());
-    ro.observe(el);
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-      window.removeEventListener("scroll", update, true);
-    };
+    if (currentRect && isWellVisible(currentRect, vp)) {
+      // Already visible — measure immediately, no scroll needed
+      setRect(currentRect);
+      setViewport(vp);
+      setScrolling(false);
+    } else {
+      // Need to scroll first
+      setScrolling(true);
+      setRect(null); // hide spotlight while scrolling
+
+      scrollToTarget(el, vp).then(() => {
+        // Re-measure after scroll stabilizes
+        setRect(readRect(el));
+        setViewport(readViewport());
+        setScrolling(false);
+      });
+    }
   }, [step]);
 
-  // ── Measure dialog after mount so we can position correctly ──
+  // ── Live tracking: scroll / resize / orientation ───────────────────
+  useLayoutEffect(() => {
+    if (!step) return;
+
+    const el = document.querySelector(step.target);
+    if (!el) return;
+    targetRef.current = el;
+
+    // Throttled update via rAF
+    let scheduled = false;
+    const scheduleUpdate = () => {
+      if (scheduled) return;
+      scheduled = true;
+      rafIdRef.current = requestAnimationFrame(() => {
+        scheduled = false;
+        if (!scrolling) {
+          setRect(readRect(el));
+          setViewport(readViewport());
+        }
+      });
+    };
+
+    const ro = new ResizeObserver(scheduleUpdate);
+    ro.observe(el);
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("orientationchange", scheduleUpdate);
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("orientationchange", scheduleUpdate);
+      window.removeEventListener("scroll", scheduleUpdate);
+    };
+  }, [step, scrolling]);
+
+  // ── Measure dialog size for placement ──────────────────────────────
   useLayoutEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
@@ -293,7 +378,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
     setStepIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  // ── Keyboard: Enter advances, Esc ends the tour. ──
+  // Keyboard
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -313,7 +398,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
 
   if (!step) return null;
 
-  // ── Compute spotlight + dialog placement for the current step ──
+  // Compute spotlight + dialog placement
   let spotlightStyle: React.CSSProperties | null = null;
   let dialogStyle: React.CSSProperties = {
     left: VIEWPORT_MARGIN,
@@ -321,7 +406,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
   };
   let side: "top" | "bottom" | "left" | "right" = "bottom";
 
-  if (rect && viewport.w > 0) {
+  if (rect && viewport.w > 0 && !scrolling) {
     const pad = SPOTLIGHT_PADDING;
     spotlightStyle = {
       left: `${rect.left - pad}px`,
@@ -357,11 +442,27 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
         />
       ) : null}
 
+      {/* Scrolling indicator */}
+      {scrolling && (
+        <div className={styles.scrollingHint} aria-live="polite" aria-label="Mengarahkan ke elemen...">
+          <div className={styles.scrollingDot} />
+          <span>Mengarahkan…</span>
+        </div>
+      )}
+
       <div
         ref={dialogRef}
-        className={`${styles.dialog} ${styles[`side_${side}`]}`}
+        className={`${styles.dialog} ${styles[`side_${side}`]} ${scrolling ? styles.dialogHidden : ""}`}
         style={dialogStyle}
       >
+        {/* Progress bar */}
+        <div className={styles.progressBar} aria-hidden="true">
+          <div
+            className={styles.progressFill}
+            style={{ width: `${((stepIndex + 1) / TOUR_STEPS.length) * 100}%` }}
+          />
+        </div>
+
         <div className={styles.dialogHeader}>
           <span className={styles.dialogAvatar}>
             <KakTaksakaAvatar size={36} expression="happy" />
@@ -375,7 +476,9 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
             </h2>
           </div>
         </div>
+
         <p className={styles.body}>{step.message}</p>
+
         <div className={styles.actions}>
           <button
             type="button"
@@ -391,7 +494,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
                 className={styles.ghost}
                 onClick={back}
               >
-                Kembali
+                ← Kembali
               </button>
             ) : null}
             <button
@@ -400,7 +503,7 @@ export function KakTaksakaTour({ onEnd }: { onEnd: () => void }) {
               onClick={advance}
               autoFocus
             >
-              {isLast ? "Selesai" : "Lanjut"}
+              {isLast ? "Selesai ✓" : "Lanjut →"}
             </button>
           </div>
         </div>
