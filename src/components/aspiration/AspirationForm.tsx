@@ -268,7 +268,11 @@ export function AspirationForm() {
 
       {formError ? (
         <div className={styles.formError} role="alert">
-          {formError}
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M10 6 L10 11 M10 14 L10 14.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+          <span>{formError}</span>
         </div>
       ) : null}
 

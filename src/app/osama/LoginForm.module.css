@@ -1,15 +1,19 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OSAMA LoginForm — V6
+   ═══════════════════════════════════════════════════════════════════ */
+
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .label {
+  display: block;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(190, 230, 250, 0.7);
+  letter-spacing: 0.06em;
+  color: var(--ink-mid);
 }
 
 .input {
@@ -17,71 +21,89 @@
   box-sizing: border-box;
   padding: 14px 16px;
   font-size: 15px;
-  color: #eaf7ff;
-  background: rgba(4, 16, 24, 0.6);
-  border: 1px solid rgba(141, 228, 255, 0.15);
-  border-radius: 12px;
+  color: var(--ink-hi);
+  background: rgba(7, 24, 36, 0.85);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
   outline: none;
   font-family: inherit;
   -webkit-appearance: none;
   appearance: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 
 .input::placeholder {
-  color: rgba(200, 230, 245, 0.4);
+  color: var(--ink-faint);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--accent-line);
 }
 
 .input:focus {
-  border-color: rgba(141, 228, 255, 0.8);
-  box-shadow: 0 0 0 3px rgba(141, 228, 255, 0.15);
-  background: rgba(4, 16, 24, 0.8);
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  background: rgba(9, 28, 42, 0.95);
 }
 
 .input:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .error {
-  background: rgba(60, 16, 22, 0.5);
-  border: 1px solid rgba(255, 130, 140, 0.4);
-  color: #ffd9dc;
-  padding: 9px 12px;
-  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: rgba(58, 18, 32, 0.55);
+  border: 1px solid rgba(255, 130, 150, 0.35);
+  color: #ffd9de;
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
   font-size: 13px;
+  line-height: 1.5;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 18px;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px;
   font-size: 15px;
-  font-weight: 700;
-  color: #06222e;
-  background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 100%);
-  border: 0;
-  border-radius: 12px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--r-md);
   cursor: pointer;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 140ms ease, filter 180ms ease, opacity 180ms ease;
-  box-shadow:
-    0 10px 24px -10px rgba(20, 130, 170, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  box-shadow: 0 10px 24px -12px rgba(47, 185, 224, 0.65);
+  margin-top: 4px;
 }
 
 .submit:hover:not(:disabled) {
+  background: #74e1f7;
   transform: translateY(-1px);
-  filter: brightness(1.04);
+  box-shadow: 0 14px 30px -12px rgba(47, 185, 224, 0.8);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .submit:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.submit:focus-visible {
-  outline: 2px solid #b6ecff;
-  outline-offset: 3px;
+  opacity: 0.5;
+  box-shadow: none;
 }

@@ -1,4 +1,6 @@
-/* ─── AspirationForm — V4 Premium ─────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════
+   AspirationForm — V6 refined
+   ═══════════════════════════════════════════════════════════════════ */
 
 .form {
   display: flex;
@@ -16,58 +18,51 @@
   overflow: hidden;
 }
 
-/* ─── Helper label ─────────────────────────────────────────────── */
-
-.fieldLabel {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(140, 200, 230, 0.65);
-  margin-bottom: 8px;
-}
-
-/* ─── Textarea ──────────────────────────────────────────────────── */
+/* ─── Textarea ─────────────────────────────────────────────────── */
 
 .textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 16px 18px;
   font-size: 15px;
-  line-height: 1.6;
-  color: #eaf7ff;
-  background: rgba(4, 18, 30, 0.55);
-  border: 1px solid rgba(100, 180, 220, 0.18);
-  border-radius: 14px;
+  line-height: 1.65;
+  color: var(--ink-hi);
+  background: rgba(7, 24, 36, 0.85);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
   outline: none;
   font-family: inherit;
   -webkit-appearance: none;
   appearance: none;
   resize: none;
   min-height: 140px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 
 .textarea::placeholder {
-  color: rgba(160, 210, 235, 0.38);
+  color: var(--ink-faint);
   font-size: 14.5px;
 }
 
+.textarea:hover:not(:disabled) {
+  border-color: var(--accent-line);
+}
+
 .textarea:focus {
-  border-color: rgba(141, 228, 255, 0.55);
-  box-shadow:
-    0 0 0 3px rgba(72, 79, 144, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  background: rgba(4, 18, 30, 0.68);
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  background: rgba(9, 28, 42, 0.95);
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .inputError {
-  border-color: rgba(255, 130, 140, 0.65) !important;
-  box-shadow: 0 0 0 3px rgba(255, 100, 110, 0.15) !important;
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(255, 130, 150, 0.14) !important;
 }
 
 /* ─── Meta row (counter / error) ───────────────────────────────── */
@@ -80,7 +75,7 @@
   min-height: 18px;
   font-size: 11.5px;
   padding: 0 2px;
-  margin-top: -4px;
+  margin-top: -6px;
 }
 
 .spacer {
@@ -89,42 +84,42 @@
 
 .errorText {
   flex: 1;
-  color: #ffb1b8;
+  color: var(--danger);
   font-weight: 500;
   font-size: 12.5px;
 }
 
 .counter {
-  color: rgba(180, 230, 255, 0.75);
+  color: var(--ink-lo);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  background: rgba(140, 220, 255, 0.08);
-  border: 1px solid rgba(140, 220, 255, 0.12);
-  padding: 3px 8px;
-  border-radius: 999px;
 }
 
 .counterWarn {
-  color: #ffe0a3;
-  background: rgba(255, 210, 138, 0.12);
-  border-color: rgba(255, 210, 138, 0.25);
+  color: var(--warn);
 }
 
 /* ─── Form-level error ──────────────────────────────────────────── */
 
 .formError {
-  background: rgba(50, 12, 18, 0.55);
-  border: 1px solid rgba(255, 130, 140, 0.35);
-  color: #ffd9dc;
+  background: rgba(58, 18, 32, 0.55);
+  border: 1px solid rgba(255, 130, 150, 0.35);
+  color: #ffd9de;
   padding: 11px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-sm);
   font-size: 13px;
   line-height: 1.5;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.formError svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* ─── Submit button ─────────────────────────────────────────────── */
@@ -135,22 +130,21 @@
   justify-content: center;
   gap: 9px;
   width: 100%;
-  padding: 16px 20px;
+  height: 52px;
+  padding: 0 20px;
   font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.015em;
-  color: #04131e;
-  background: linear-gradient(135deg, #8de4ff 0%, #4dc7ee 55%, #484f90 130%);
-  border: 0;
-  border-radius: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--r-md);
   cursor: pointer;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: filter 160ms ease, transform 140ms ease, box-shadow 160ms ease;
-  box-shadow:
-    0 10px 28px -10px rgba(72, 79, 144, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
-  margin-top: 4px;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  box-shadow: 0 10px 28px -12px rgba(47, 185, 224, 0.65);
   position: relative;
   overflow: hidden;
 }
@@ -161,15 +155,15 @@
   position: absolute;
   top: 0;
   left: -100%;
-  width: 60%;
+  width: 55%;
   height: 100%;
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.22) 50%,
     transparent 100%
   );
-  transition: left 400ms ease;
+  transition: left 500ms ease;
   pointer-events: none;
 }
 
@@ -178,26 +172,19 @@
 }
 
 .submit:hover:not(:disabled) {
-  filter: brightness(1.06);
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 34px -10px rgba(72, 79, 144, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  background: #74e1f7;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px -12px rgba(47, 185, 224, 0.8);
 }
 
 .submit:active:not(:disabled) {
   transform: translateY(0);
-  filter: brightness(0.97);
 }
 
 .submit:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.submit:focus-visible {
-  outline: 2px solid #b6ecff;
-  outline-offset: 3px;
+  box-shadow: none;
 }
 
 /* ─── Send icon ─────────────────────────────────────────────────── */
@@ -213,25 +200,19 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  border: 2px solid rgba(4, 19, 30, 0.28);
-  border-top-color: #04131e;
+  border: 2px solid rgba(3, 34, 47, 0.25);
+  border-top-color: var(--accent-ink);
   animation: spin 700ms linear infinite;
   flex-shrink: 0;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* ─── Reduced motion ────────────────────────────────────────────── */
-
 @media (prefers-reduced-motion: reduce) {
-  .submit,
-  .textarea,
-  .spinner {
-    transition: none !important;
-    animation: none !important;
-  }
   .submit::after {
     display: none;
   }

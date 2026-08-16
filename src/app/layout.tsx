@@ -1,6 +1,22 @@
 import type { Metadata, Viewport } from "next";
 
+import { Sora, Inter } from "next/font/google";
+
 import "./globals.css";
+
+const display = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+});
+
+const body = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "OSIS Ngobrol Yuk",
@@ -18,7 +34,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#06222e",
+  themeColor: "#04121c",
 };
 
 export default function RootLayout({
@@ -28,7 +44,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body className={`${display.variable} ${body.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }

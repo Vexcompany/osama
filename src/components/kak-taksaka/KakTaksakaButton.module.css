@@ -33,7 +33,7 @@
 }
 
 .button:focus-visible {
-  outline: 2px solid #b6ecff;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -47,8 +47,8 @@
   background: radial-gradient(
     circle at 35% 30%,
     rgba(255, 255, 255, 0.18) 0%,
-    rgba(141, 228, 255, 0.08) 60%,
-    rgba(141, 228, 255, 0) 100%
+    rgba(85, 215, 242, 0.08) 60%,
+    rgba(85, 215, 242, 0) 100%
   );
 }
 

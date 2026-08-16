@@ -264,11 +264,19 @@ export function CanvasAspirationAdmin({
         disabled={state !== "ready"}
         aria-label={`Unduh canvas aspirasi ${caseId} sebagai gambar PNG`}
       >
-        {state === "loading"
-          ? "Memuat…"
-          : state === "error"
-            ? "Gagal"
-            : "⬇ Unduh Canvas (PNG)"}
+        {state === "loading" ? (
+          "Memuat…"
+        ) : state === "error" ? (
+          "Gagal"
+        ) : (
+          <>
+            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M10 3 V12 M6.5 9 L10 12.5 L13.5 9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 16 H16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+            Unduh Canvas (PNG)
+          </>
+        )}
       </button>
 
       <div className={styles.formGrid}>

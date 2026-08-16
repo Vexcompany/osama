@@ -33,11 +33,11 @@ export function SuccessState({
       aria-live="polite"
     >
       <div className={styles.checkBubble} aria-hidden="true">
-        <svg viewBox="0 0 64 64" width="48" height="48">
+        <svg viewBox="0 0 64 64" width="44" height="44">
           <path
             d="M18 33 L28 43 L46 24"
             fill="none"
-            stroke="#06222e"
+            stroke="currentColor"
             strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -47,7 +47,7 @@ export function SuccessState({
 
       <h2 className={styles.title}>Aspirasi berhasil dikirim!</h2>
       <p className={styles.body}>
- Terima kasih sudah menyampaikan suaramu untuk OSIS.
+        Terima kasih sudah menyampaikan suaramu untuk OSIS.
       </p>
 
       {caseId ? (

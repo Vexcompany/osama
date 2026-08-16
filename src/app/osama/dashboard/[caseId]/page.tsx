@@ -41,6 +41,27 @@ function statusLabel(s: string): string {
   }
 }
 
+const STATUS_META: Record<string, { label: string; icon: React.ReactNode }> = {
+  created: {
+    label: "Dibuat",
+    icon: (
+      <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M10 6 V10 L12.5 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  updated: {
+    label: "Diperbarui",
+    icon: (
+      <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+        <path d="M14.5 7.5 C13.7 5.9 12 4.8 10 4.8 C7.2 4.8 5 7 5 9.8 C5 12.6 7.2 14.8 10 14.8 C12.3 14.8 14.2 13.4 15 11.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M14.5 4.5 V7.5 H11.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+};
+
 export default async function CaseDetailPage({
   params,
 }: {
@@ -55,7 +76,10 @@ export default async function CaseDetailPage({
   return (
     <div className={styles.wrap}>
       <Link href="/osama/dashboard" className={styles.back}>
-        ← Kembali ke ringkasan
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+          <path d="M12 4 L6 10 L12 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Kembali ke ringkasan
       </Link>
 
       <div className={styles.card}>
@@ -73,6 +97,7 @@ export default async function CaseDetailPage({
           <div>
             <div className={styles.label}>Dibuat</div>
             <div className={styles.metaValue}>
+              {STATUS_META.created.icon}
               <time dateTime={row.createdAt}>{formatTime(row.createdAt)}</time>
             </div>
           </div>
@@ -80,6 +105,7 @@ export default async function CaseDetailPage({
             <div>
               <div className={styles.label}>Diperbarui</div>
               <div className={styles.metaValue}>
+                {STATUS_META.updated.icon}
                 <time dateTime={row.updatedAt}>{formatTime(row.updatedAt)}</time>
               </div>
             </div>
@@ -102,4 +128,3 @@ export default async function CaseDetailPage({
     </div>
   );
 }
-

@@ -22,13 +22,11 @@ export function Navbar() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the topmost section that is intersecting
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (visible.length > 0) {
           const id = visible[0].target.id;
-          // Map section id back to nav href
           if (id === "tentang" || id === "aspirasi") {
             setActiveHref("#aspirasi");
           } else {
@@ -48,7 +46,7 @@ export function Navbar() {
 
   // Detect scroll for navbar opacity
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -78,21 +76,19 @@ export function Navbar() {
             onClick={(e) => handleLinkClick(e, "#hero")}
           >
             <span className={styles.logoMark} aria-hidden="true">
-              <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
-                <circle cx="16" cy="16" r="10" fill="rgba(255,255,255,0.15)" />
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none">
                 <path
-                  d="M9 18 C 11 22, 21 22, 23 18"
-                  stroke="white"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  fill="none"
+                  d="M12 3 C7 8 7 12 12 15.5 C17 12 17 8 12 3 Z"
+                  fill="rgba(255,255,255,0.95)"
                 />
-                <circle cx="12" cy="14" r="1.8" fill="white" opacity="0.8" />
-                <circle cx="20" cy="14" r="1.8" fill="white" opacity="0.8" />
+                <path
+                  d="M12 8.5 C9.5 11 9.5 13.5 12 16 C14.5 13.5 14.5 11 12 8.5 Z"
+                  fill="#0b4d68"
+                />
               </svg>
             </span>
             <span className={styles.logoText}>
-              <span className={styles.logoMain}>Osis Ngobrol Yuk!</span>
+              <span className={styles.logoMain}>Osis Ngobrol Yuk</span>
               <span className={styles.logoSub}>SMKN 5 Madiun</span>
             </span>
           </a>
@@ -136,24 +132,41 @@ export function Navbar() {
             className={styles.menuBtn}
             aria-label={open ? "Tutup menu" : "Buka menu"}
             aria-expanded={open}
+            aria-controls="nav-drawer"
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? (
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-                <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-                <path d="M3 6 H17 M3 10 H17 M3 14 H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            )}
+            <svg
+              viewBox="0 0 20 20"
+              width="18"
+              height="18"
+              fill="none"
+              aria-hidden="true"
+              className={open ? styles.iconHide : ""}
+            >
+              <path d="M3 6 H17 M3 10 H17 M3 14 H17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+            <svg
+              viewBox="0 0 20 20"
+              width="18"
+              height="18"
+              fill="none"
+              aria-hidden="true"
+              className={open ? "" : styles.iconHide}
+            >
+              <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
       </nav>
 
       {/* Mobile drawer */}
       {open && (
-        <div className={styles.drawer} role="dialog" aria-label="Menu navigasi">
+        <div
+          id="nav-drawer"
+          className={styles.drawer}
+          role="dialog"
+          aria-label="Menu navigasi"
+        >
           {NAV_LINKS.map((l) => (
             <a
               key={l.href}

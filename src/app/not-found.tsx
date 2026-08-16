@@ -5,49 +5,22 @@
 import Link from "next/link";
 
 import { UnderwaterBackground } from "@/components/underwater/UnderwaterBackground";
+import styles from "./not-found.module.css";
 
 export default function NotFound() {
   return (
-    <main
-      style={{
-        position: "relative",
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-        textAlign: "center",
-      }}
-    >
+    <main className={styles.main}>
       <UnderwaterBackground />
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          maxWidth: 360,
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-          alignItems: "center",
-        }}
-      >
-        <div style={{ fontSize: 56, fontWeight: 700, color: "#eaf9ff" }}>404</div>
-        <p style={{ color: "rgba(205,230,245,0.8)", margin: 0 }}>
-          Halaman yang kamu cari tidak ada.
-        </p>
-        <Link
-          href="/"
-          style={{
-            display: "inline-block",
-            padding: "10px 18px",
-            background: "rgba(255,255,255,0.92)",
-            color: "#06222e",
-            borderRadius: 12,
-            fontWeight: 600,
-            textDecoration: "none",
-            marginTop: 6,
-          }}
-        >
+      <div className={styles.inner}>
+        <div className={styles.code} aria-hidden="true">
+          404
+        </div>
+        <div className={styles.rule} aria-hidden="true" />
+        <p className={styles.desc}>Halaman yang kamu cari tidak ada.</p>
+        <Link href="/" className={styles.link}>
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+            <path d="M3 10 L9 4 M3 10 L9 16 M4.5 10 H17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           Kembali ke form
         </Link>
       </div>

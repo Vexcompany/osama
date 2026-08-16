@@ -75,10 +75,24 @@ export function AdminReplySection({
             disabled={saving}
             className={styles.saveReplyBtn}
           >
-            {saving ? "Menyimpan…" : "💾 Simpan Balasan Admin"}
+            {saving ? (
+              <span className={styles.spinner} aria-hidden="true" />
+            ) : (
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="none" aria-hidden="true">
+                <path d="M4 4 H14 L16 6 V16 H4 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                <path d="M7 4 V9 H13 V4 M7 16 V11 H13 V16" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              </svg>
+            )}
+            {saving ? "Menyimpan…" : "Simpan Balasan"}
           </button>
           {saved && (
-            <span className={styles.savedNotice}>✓ Balasan tersimpan!</span>
+            <span className={styles.savedNotice}>
+              <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M6.5 10.5 L9 13 L13.5 7.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Balasan tersimpan!
+            </span>
           )}
           {error && <span className={styles.errorNotice}>{error}</span>}
         </div>
