@@ -19,15 +19,16 @@
   width: 46px;
   height: 46px;
   border-radius: var(--r-md);
-  background: linear-gradient(160deg, #4fc9ee 0%, #167aa3 100%);
+  background: var(--grad-accent);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   margin-bottom: 6px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 8px 20px -8px rgba(47, 185, 224, 0.6);
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 8px 20px -8px rgba(47, 185, 224, 0.66),
+    0 0 22px rgba(85, 215, 242, 0.26);
 }
 
 .brandSub {
@@ -47,14 +48,29 @@
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  overflow: hidden;
   padding: 30px 28px 26px;
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, #0e2a3d 0%, #0a2030 100%);
+  background:
+    radial-gradient(80% 40% at 50% -16%, rgba(85, 215, 242, 0.11), transparent 72%),
+    linear-gradient(180deg, #0e2a3d 0%, #0a2030 100%);
   border: 1px solid var(--line-strong);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(85, 215, 242, 0.06);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22px;
+  right: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(140, 240, 255, 0.5), transparent);
+  opacity: 0.8;
 }
 
 .cardHeader {
@@ -70,10 +86,11 @@
   width: 40px;
   height: 40px;
   border-radius: var(--r-sm);
-  background: var(--accent-soft);
+  background: linear-gradient(135deg, rgba(140, 240, 255, 0.16), rgba(85, 215, 242, 0.06));
   border: 1px solid var(--accent-line);
   color: var(--accent);
   flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .title {
