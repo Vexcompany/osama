@@ -1,0 +1,148 @@
+/* OsamaCanvas — canvas preview + download wrapper (styling only; drawing logic untouched) */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── header row ───────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sectionLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  box-shadow: 0 6px 18px -8px rgba(47, 185, 224, 0.55);
+}
+
+.downloadBtn:hover:not(:disabled) {
+  background: #74e1f7;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -8px rgba(47, 185, 224, 0.7);
+}
+
+.downloadBtn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+.downloadBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring), 0 6px 18px -8px rgba(47, 185, 224, 0.55);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── error notice ─────────────────────────────────────────────── */
+
+.errorNotice {
+  margin: 0;
+  padding: 10px 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: rgba(58, 18, 32, 0.55);
+  border: 1px solid rgba(255, 130, 150, 0.35);
+  color: #ffd9de;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* ── preview container ────────────────────────────────────────── */
+
+.previewWrap {
+  position: relative;
+  width: 100%;
+  /* Maintain 3375:6000 = 9:16 aspect ratio for the container */
+  aspect-ratio: 3375 / 6000;
+  background: rgba(7, 24, 36, 0.6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--r-lg);
+  transition: opacity 200ms ease;
+}
+
+/* ── loading overlay ──────────────────────────────────────────── */
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.loadingDot {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border: 3px solid rgba(85, 215, 242, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: osamaSpin 0.8s linear infinite;
+}
+
+.loadingText {
+  font-size: 12px;
+  color: var(--ink-lo);
+  letter-spacing: 0.04em;
+}
+
+@keyframes osamaSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingDot {
+    animation: none;
+  }
+}

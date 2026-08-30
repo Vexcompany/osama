@@ -1,0 +1,10 @@
+.avatar {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  /* The mascot is delivered as a raster. Make sure it scales
+     nicely in any container while preserving aspect ratio. */
+  object-fit: contain;
+  border-radius: 50%;
+}

@@ -1,0 +1,13 @@
+.canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+  /* The canvas itself shouldn't cause any compositing issues; let the
+     browser promote it. We don't set will-change permanently so we
+     don't keep extra GPU memory tied up. */
+  contain: strict;
+}

@@ -1,0 +1,112 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OSAMA VerifyForm — V6
+   ═══════════════════════════════════════════════════════════════════ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-mid);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px 16px;
+  font-size: 22px;
+  letter-spacing: 0.5em;
+  text-align: center;
+  color: var(--ink-hi);
+  background: rgba(7, 24, 36, 0.85);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  outline: none;
+  font-family: ui-monospace, "SF Mono", "Menlo", monospace;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+
+.input::placeholder {
+  color: var(--ink-faint);
+  letter-spacing: 0.5em;
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--accent-line);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+  background: rgba(9, 28, 42, 0.95);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: rgba(58, 18, 32, 0.55);
+  border: 1px solid rgba(255, 130, 150, 0.35);
+  color: #ffd9de;
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  box-shadow: 0 10px 24px -12px rgba(47, 185, 224, 0.65);
+  margin-top: 4px;
+}
+
+.submit:hover:not(:disabled) {
+  background: #74e1f7;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px -12px rgba(47, 185, 224, 0.8);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" aria-label="Kak Taksaka (Paskibra Gala Taksaka)">
+  <defs>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2540"/>
+      <stop offset="100%" stop-color="#0c1426"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7d27a"/>
+      <stop offset="100%" stop-color="#c8901f"/>
+    </linearGradient>
+    <linearGradient id="uniform" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dde6ef"/>
+    </linearGradient>
+    <linearGradient id="cape" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c8281e"/>
+      <stop offset="100%" stop-color="#7a120c"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.55)"/>
+      <stop offset="60%" stop-color="rgba(141,228,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(141,228,255,0)"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7dcc0"/>
+      <stop offset="100%" stop-color="#e8c4a0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- halo -->
+  <circle cx="128" cy="116" r="112" fill="url(#halo)"/>
+
+  <!-- Cape (behind) -->
+  <path d="M50 110 Q 38 170 56 230 L 92 230 L 96 110 Z" fill="url(#cape)" opacity="0.92"/>
+  <path d="M200 110 Q 218 170 200 230 L 168 230 L 168 110 Z" fill="url(#cape)" opacity="0.92"/>
+
+  <!-- Body — white dress uniform -->
+  <path d="M88 144 L 168 144 L 178 230 L 78 230 Z" fill="url(#uniform)" stroke="rgba(0,0,0,0.08)" stroke-width="0.8"/>
+  <!-- Epaulets -->
+  <path d="M84 140 L 96 152 L 88 160 Z" fill="url(#gold)"/>
+  <path d="M172 140 L 160 152 L 168 160 Z" fill="url(#gold)"/>
+  <!-- Belt -->
+  <rect x="78" y="200" width="100" height="10" fill="#0c1426"/>
+  <rect x="120" y="198" width="14" height="14" fill="url(#gold)" stroke="#0c1426" stroke-width="0.8"/>
+  <!-- Collar V -->
+  <path d="M112 144 L 128 164 L 144 144 Z" fill="url(#cape)"/>
+  <!-- Chest badge -->
+  <circle cx="128" cy="178" r="9" fill="url(#gold)" stroke="#0c1426" stroke-width="0.8"/>
+  <path d="M122 178 L 126 182 L 134 174" fill="none" stroke="#0c1426" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Pocket flaps -->
+  <rect x="92" y="170" width="22" height="14" fill="rgba(255,255,255,0.4)" stroke="rgba(0,0,0,0.08)" stroke-width="0.4"/>
+  <rect x="142" y="170" width="22" height="14" fill="rgba(255,255,255,0.4)" stroke="rgba(0,0,0,0.08)" stroke-width="0.4"/>
+
+  <!-- Head -->
+  <ellipse cx="128" cy="96" rx="38" ry="42" fill="url(#skin)"/>
+  <!-- Hair tuft -->
+  <path d="M100 78 Q 128 56 158 70 L 152 84 Q 128 72 108 84 Z" fill="#1a1410" opacity="0.92"/>
+
+  <!-- Pet (peci cap) -->
+  <path d="M88 70 Q 128 30 168 70 L 164 78 Q 128 50 92 78 Z" fill="url(#cap)" stroke="#000" stroke-width="0.6"/>
+  <rect x="90" y="76" width="76" height="6" fill="url(#gold)"/>
+  <!-- Cap front emblem (star) -->
+  <circle cx="128" cy="62" r="6" fill="url(#gold)"/>
+  <path d="M128 56 L 129.5 60.5 L 134 60.5 L 130.5 63.5 L 132 68 L 128 65 L 124 68 L 125.5 63.5 L 122 60.5 L 126.5 60.5 Z" fill="#0c1426"/>
+
+  <!-- Eyes -->
+  <path d="M108 96 Q 116 90 124 96" fill="none" stroke="#1a1410" stroke-width="3" stroke-linecap="round"/>
+  <path d="M132 96 Q 140 90 148 96" fill="none" stroke="#1a1410" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Cheek blush -->
+  <ellipse cx="106" cy="108" rx="5" ry="3" fill="#f4a8a0" opacity="0.55"/>
+  <ellipse cx="150" cy="108" rx="5" ry="3" fill="#f4a8a0" opacity="0.55"/>
+
+  <!-- Mouth (smile) -->
+  <path d="M118 114 Q 128 122 138 114" fill="none" stroke="#1a1410" stroke-width="2.4" stroke-linecap="round"/>
+
+  <!-- Arms — left at side, right holding the flag -->
+  <path d="M168 150 Q 196 160 198 200 L 192 220 L 184 218 L 188 200 Q 188 170 168 158 Z" fill="url(#uniform)" stroke="rgba(0,0,0,0.06)" stroke-width="0.6"/>
+  <path d="M88 150 Q 60 160 58 200 L 64 220 L 72 218 L 68 200 Q 68 170 88 158 Z" fill="url(#uniform)" stroke="rgba(0,0,0,0.06)" stroke-width="0.6"/>
+
+  <!-- Flag pole (right hand) -->
+  <line x1="198" y1="60" x2="198" y2="220" stroke="#7a4d1e" stroke-width="2.4"/>
+  <line x1="198" y1="60" x2="198" y2="220" stroke="url(#gold)" stroke-width="0.6" stroke-dasharray="2 4"/>
+  <!-- Flag tip -->
+  <path d="M198 60 L 210 56 L 198 64 Z" fill="url(#gold)"/>
+  <!-- Flag (red, with PAGASKA text + emblem) -->
+  <path d="M198 64 L 250 64 L 250 100 L 198 100 Z" fill="url(#cape)" stroke="url(#gold)" stroke-width="0.6"/>
+  <text x="224" y="86" font-size="14" font-weight="700" fill="url(#gold)" text-anchor="middle" font-family="serif" letter-spacing="1.4">PAGASKA</text>
+  <text x="224" y="96" font-size="6" font-weight="500" fill="url(#gold)" text-anchor="middle" font-family="serif" letter-spacing="0.5">PASKIBRA · SMKN 5 MADIUN</text>
+  <!-- Flag tail -->
+  <path d="M250 64 L 260 70 L 250 76 Z" fill="url(#cape)"/>
+  <path d="M250 88 L 260 94 L 250 100 Z" fill="url(#cape)"/>
+
+  <!-- Boots -->
+  <path d="M86 230 L 86 248 Q 86 254 92 254 L 110 254 Q 116 254 116 248 L 116 230 Z" fill="#0c1426"/>
+  <path d="M170 230 L 170 248 Q 170 254 176 254 L 194 254 Q 200 254 200 248 L 200 230 Z" fill="#0c1426"/>
+  <!-- Boot laces (red) -->
+  <path d="M91 238 L 113 238 M91 244 L 113 244" stroke="url(#cape)" stroke-width="0.8"/>
+  <path d="M175 238 L 197 238 M175 244 L 197 244" stroke="url(#cape)" stroke-width="0.8"/>
+</svg>

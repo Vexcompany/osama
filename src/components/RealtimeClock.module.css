@@ -1,0 +1,9 @@
+.clock {
+  display: inline-flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-lo);
+  letter-spacing: 0.02em;
+}

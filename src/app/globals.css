@@ -1,0 +1,167 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OSIS Ngobrol Yuk — design system (V6)
+   Deep-ocean identity, premium & restrained.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Color · ocean scale ───────────────────────────────────────── */
+  --bg-0: #030d14; /* abyss bottom */
+  --bg-1: #061724;
+  --bg-2: #0a2232; /* raised surface */
+  --bg-3: #0e2b3e;
+
+  --surface: rgba(10, 32, 47, 0.9); /* panels */
+  --surface-strong: #0c2435; /* solid panel */
+  --surface-soft: rgba(14, 40, 57, 0.55); /* list rows, inputs */
+  --surface-hover: rgba(21, 51, 71, 0.6);
+
+  /* ── Color · ink ───────────────────────────────────────────────── */
+  --ink-hi: #eef9ff;
+  --ink-mid: #b6d3e4;
+  --ink-lo: #7fa3b8;
+  --ink-faint: #4f7086;
+
+  /* ── Color · accent (lagoon cyan) ─────────────────────────────── */
+  --accent: #55d7f2;
+  --accent-strong: #2fb9e0;
+  --accent-deep: #0e6f97;
+  --accent-ink: #03222f;
+  --accent-soft: rgba(85, 215, 242, 0.1);
+  --accent-line: rgba(85, 215, 242, 0.28);
+
+  /* ── Color · status ───────────────────────────────────────────── */
+  --info: #55d7f2;
+  --warn: #f4c46f;
+  --success: #69dfa3;
+  --success-deep: #0c2f22;
+  --danger: #ff8296;
+  --danger-deep: #3a1220;
+  --archived: #7fa3b8;
+
+  /* ── Color · lines ────────────────────────────────────────────── */
+  --line: rgba(150, 210, 235, 0.14);
+  --line-strong: rgba(150, 210, 235, 0.28);
+
+  /* ── Radius ───────────────────────────────────────────────────── */
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-full: 999px;
+
+  /* ── Elevation ────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(1, 6, 10, 0.35);
+  --shadow-md: 0 12px 32px -14px rgba(1, 6, 10, 0.6);
+  --shadow-lg: 0 28px 60px -20px rgba(1, 6, 10, 0.75);
+  --ring: 0 0 0 2px rgba(85, 215, 242, 0.55);
+
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-med: 220ms;
+
+  /* ── Type ─────────────────────────────────────────────────────── */
+  --font-display: var(--font-display), ui-sans-serif, system-ui,
+    "Segoe UI", sans-serif;
+  --font-body: var(--font-body), ui-sans-serif, system-ui,
+    "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #0c2a3d 0%, #08202f 34%, #041420 68%, #030d14 100%)
+    fixed;
+  color: var(--ink-hi);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+a {
+  color: var(--accent);
+}
+
+::selection {
+  background: rgba(85, 215, 242, 0.28);
+  color: var(--ink-hi);
+}
+
+/* Accessible default focus ring — individual components override
+   with their own accent-colored ring where needed. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Visually-hidden helper for labels & sr-only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

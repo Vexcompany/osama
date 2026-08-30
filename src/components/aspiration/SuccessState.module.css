@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════════════════════════
+   SuccessState — V6 refined
+   ═══════════════════════════════════════════════════════════════════ */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 16px 4px 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 380ms ease, transform 380ms var(--ease-out);
+}
+
+.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.checkBubble {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  color: var(--accent);
+  margin-bottom: 2px;
+  box-shadow: 0 12px 30px -14px rgba(47, 185, 224, 0.6);
+}
+
+.checkBubble svg {
+  display: block;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-hi);
+  letter-spacing: -0.015em;
+}
+
+.body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-lo);
+  max-width: 34ch;
+}
+
+.caseIdBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 14px 26px;
+  background: rgba(7, 24, 36, 0.85);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  min-width: 60%;
+}
+
+.caseIdLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.caseIdValue {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-hi);
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, "SF Mono", "Menlo", monospace;
+}
+
+.again {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-hi);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.again:hover {
+  background: rgba(85, 215, 242, 0.08);
+  border-color: var(--accent-line);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
