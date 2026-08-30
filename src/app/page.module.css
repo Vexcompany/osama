@@ -29,10 +29,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(52% 34% at 50% 14%, rgba(85, 215, 242, 0.2), transparent 70%),
-    radial-gradient(38% 42% at 12% 30%, rgba(47, 185, 224, 0.12), transparent 72%),
-    radial-gradient(38% 42% at 88% 26%, rgba(34, 154, 200, 0.12), transparent 72%),
-    linear-gradient(180deg, rgba(2, 12, 19, 0.02), rgba(2, 12, 19, 0.26));
+    radial-gradient(44% 30% at 50% 8%, rgba(140, 236, 255, 0.1), transparent 68%),
+    linear-gradient(180deg, rgba(2, 12, 19, 0.04), rgba(2, 12, 19, 0.32) 78%, rgba(2, 12, 19, 0.55));
   pointer-events: none;
 }
 
@@ -66,7 +64,7 @@
   width: min(78vw, 680px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(85, 215, 242, 0.16), transparent 62%);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(85, 215, 242, 0.13), transparent 62%);
   filter: blur(34px);
   z-index: -1;
   pointer-events: none;

@@ -164,6 +164,12 @@ a {
   }
 }
 
+/* Anchored sections must clear the floating navbar when scrolled to
+   (via nav links or the hero CTAs). */
+section[id] {
+  scroll-margin-top: 96px;
+}
+
 /* Accessible default focus ring — individual components override
    with their own accent-colored ring where needed. */
 :focus-visible {
