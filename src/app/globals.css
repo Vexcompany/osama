@@ -4,6 +4,8 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: dark;
+
   /* ── Color · ocean scale ───────────────────────────────────────── */
   --bg-0: #030d14; /* abyss bottom */
   --bg-1: #061724;
@@ -29,6 +31,14 @@
   --accent-soft: rgba(85, 215, 242, 0.1);
   --accent-line: rgba(85, 215, 242, 0.28);
 
+  /* ── Color · accent gradients & glow ──────────────────────────── */
+  --grad-accent: linear-gradient(135deg, #8cf0ff 0%, #55d7f2 38%, #2fb9e0 78%, #1c9fd0 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(140, 240, 255, 0.16), rgba(85, 215, 242, 0.05));
+  --grad-caution: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(85, 215, 242, 0.03));
+  --glow-accent: 0 0 22px rgba(85, 215, 242, 0.32);
+  --glow-accent-lg: 0 24px 60px -18px rgba(47, 185, 224, 0.72), 0 0 0 1px rgba(85, 215, 242, 0.06);
+
+
   /* ── Color · status ───────────────────────────────────────────── */
   --info: #55d7f2;
   --warn: #f4c46f;
@@ -51,15 +61,17 @@
   --r-full: 999px;
 
   /* ── Elevation ────────────────────────────────────────────────── */
-  --shadow-sm: 0 1px 2px rgba(1, 6, 10, 0.35);
-  --shadow-md: 0 12px 32px -14px rgba(1, 6, 10, 0.6);
-  --shadow-lg: 0 28px 60px -20px rgba(1, 6, 10, 0.75);
-  --ring: 0 0 0 2px rgba(85, 215, 242, 0.55);
+  --shadow-sm: 0 1px 2px rgba(1, 6, 10, 0.4);
+  --shadow-md: 0 16px 40px -16px rgba(1, 6, 10, 0.66);
+  --shadow-lg: 0 34px 74px -24px rgba(1, 6, 10, 0.82);
+  --shadow-card: 0 30px 70px -34px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --ring: 0 0 0 2px rgba(85, 215, 242, 0.55), 0 0 22px rgba(85, 215, 242, 0.18);
 
   /* ── Motion ───────────────────────────────────────────────────── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 150ms;
   --dur-med: 220ms;
+  --dur-slow: 480ms;
 
   /* ── Type ─────────────────────────────────────────────────────── */
   --font-display: var(--font-display), ui-sans-serif, system-ui,
@@ -125,8 +137,31 @@ a {
 }
 
 ::selection {
-  background: rgba(85, 215, 242, 0.28);
+  background: rgba(85, 215, 242, 0.34);
   color: var(--ink-hi);
+}
+
+/* Premium ambient pulse for decorative glows (used sparingly). */
+@keyframes ambientPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
 }
 
 /* Accessible default focus ring — individual components override

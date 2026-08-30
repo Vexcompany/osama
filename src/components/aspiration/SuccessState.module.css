@@ -26,11 +26,11 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--accent-soft);
+  background: radial-gradient(120% 120% at 30% 22%, rgba(140, 240, 255, 0.22), rgba(85, 215, 242, 0.06));
   border: 1px solid var(--accent-line);
   color: var(--accent);
   margin-bottom: 2px;
-  box-shadow: 0 12px 30px -14px rgba(47, 185, 224, 0.6);
+  box-shadow: 0 12px 30px -14px rgba(47, 185, 224, 0.66), 0 0 26px rgba(85, 215, 242, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .checkBubble svg {

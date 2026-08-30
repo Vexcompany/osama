@@ -80,22 +80,22 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--accent-ink);
-  background: var(--accent);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--grad-accent);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--r-md);
   cursor: pointer;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
   transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
-  box-shadow: 0 10px 24px -12px rgba(47, 185, 224, 0.65);
+  box-shadow: 0 12px 28px -12px rgba(47, 185, 224, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.26);
   margin-top: 4px;
 }
 
 .submit:hover:not(:disabled) {
-  background: #74e1f7;
+  background: var(--grad-accent);
   transform: translateY(-1px);
-  box-shadow: 0 14px 30px -12px rgba(47, 185, 224, 0.8);
+  box-shadow: 0 16px 34px -12px rgba(47, 185, 224, 0.88), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .submit:active:not(:disabled) {
