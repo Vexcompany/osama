@@ -26,13 +26,18 @@ export async function getServerSupabase() {
   });
 }
 
-// Backwards-compatible export used by existing dashboard pages.
 export const createServerSupabaseClient = getServerSupabase;
 
 export async function getCurrentUser() {
-  const supabase = await getServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  try {
+    const supabase = await getServerSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+  } catch {
+    // Missing/misconfigured preview auth must not turn the public OSAMA
+    // login page into a 500 response. Protected routes will still deny access.
+    return null;
+  }
 }
 
 export async function assertOsamaAccess() {
