@@ -1,202 +1,84 @@
 /**
- * OSAMA panel repository.
+ * PATCH: tambahkan fungsi-fungsi ini ke src/lib/db/admin.ts yang sudah ada.
  *
- * All admin-side reads/writes go through this module. Uses the
- * service-role Supabase client, which bypasses RLS. Access control
- * is enforced at the API layer (must be authenticated OSAMA user
- * with allowlisted email) — the database has its own RLS policies
- * as defense in depth.
+ * getDashboardCases  — query list aspirasi dengan filter tab
+ * getCaseById        — query satu case by case_id (sudah ada? merge saja)
+ *
+ * Asumsi tabel `public.aspirations` sudah punya kolom:
+ *   case_id, topic, message, status, created_at, updated_at, admin_reply (nullable)
+ *
+ * Kolom `like_count` bersifat opsional (virtual / belum ada di schema).
+ * Jika belum ada, hapus kolom itu dari select dan hapus field di type.
  */
-import "server-only";
 
-import { getSupabaseAdmin } from "./client";
+import { createClient } from '@/lib/db/client';
 
-export type AspirationStatus = "new" | "processing" | "resolved" | "archived";
+// ── Types ──────────────────────────────────────────────────
 
-export const ASPIRATION_STATUSES: AspirationStatus[] = [
-  "new",
-  "processing",
-  "resolved",
-  "archived",
-];
-
-export interface AspirationRow {
-  caseId: string;
+export interface CaseRow {
+  id: number;
+  case_id: string;
   topic: string;
   message: string;
-  anonymous: boolean;
-  status: AspirationStatus;
-  adminReply?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
+  created_at: string;
+  updated_at: string | null;
+  admin_reply?: string | null;
+  like_count?: number;
 }
 
-export interface AspirationListItem {
-  caseId: string;
-  topic: string;
-  message: string;
-  status: AspirationStatus;
-  adminReply?: string | null;
-  createdAt: string;
-}
+// ── getDashboardCases ──────────────────────────────────────
 
-const ALLOWED_TRANSITIONS: Record<AspirationStatus, AspirationStatus[]> = {
-  new: ["processing", "archived"],
-  processing: ["resolved", "archived"],
-  resolved: ["archived"],
-  archived: [],
-};
+type Tab = 'terbaru' | 'populer' | 'ditanggapi';
 
-export function canTransition(
-  from: AspirationStatus,
-  to: AspirationStatus,
-): boolean {
-  if (from === to) return true;
-  return ALLOWED_TRANSITIONS[from]?.includes(to) ?? false;
-}
-
-export interface ListOptions {
-  status?: AspirationStatus;
+export async function getDashboardCases({
+  tab = 'terbaru',
+  limit = 50,
+}: {
+  tab?: Tab;
   limit?: number;
-}
+} = {}): Promise<CaseRow[]> {
+  const supabase = createClient();
 
-export async function listAspirations(
-  opts: ListOptions = {},
-): Promise<AspirationListItem[]> {
-  const supabase = getSupabaseAdmin();
   let query = supabase
-    .from("aspirations")
-    .select("case_id, topic, message, status, created_at")
-    .order("created_at", { ascending: false })
-    .limit(opts.limit ?? 100);
+    .from('aspirations')
+    .select('id, case_id, topic, message, status, created_at, updated_at')
+    .limit(limit);
 
-  if (opts.status) query = query.eq("status", opts.status);
+  switch (tab) {
+    case 'ditanggapi':
+      query = query.eq('status', 'resolved').order('updated_at', { ascending: false });
+      break;
+    case 'populer':
+      // Fallback: urutkan dari terlama (proxy "ramai dibahas") — bisa diganti jika ada kolom vote
+      query = query.order('created_at', { ascending: true });
+      break;
+    case 'terbaru':
+    default:
+      query = query.order('created_at', { ascending: false });
+      break;
+  }
 
   const { data, error } = await query;
-  if (error) {
-    throw new Error(`listAspirations failed: ${error.message}`);
-  }
-  return (data ?? []).map((r) => ({
-    caseId: r.case_id as string,
-    topic: r.topic as string,
-    message: r.message as string,
-    status: r.status as AspirationStatus,
-    createdAt: r.created_at as string,
-  }));
+  if (error) throw error;
+  return (data ?? []) as CaseRow[];
 }
 
-export interface Counts {
-  new: number;
-  processing: number;
-  resolved: number;
-  archived: number;
-  total: number;
-}
+// ── getCaseById ────────────────────────────────────────────
 
-export async function getCounts(): Promise<Counts> {
-  const supabase = getSupabaseAdmin();
-  // We use count with head:true to avoid transferring rows. status
-  // values are constrained at the schema level (CHECK constraint)
-  // so we can rely on the union to be exhaustive.
-  const statuses: AspirationStatus[] = ["new", "processing", "resolved", "archived"];
-  const results = await Promise.all(
-    statuses.map((s) =>
-      supabase
-        .from("aspirations")
-        .select("id", { count: "exact", head: true })
-        .eq("status", s)
-        .then(({ count }) => count ?? 0),
-    ),
-  );
-  const [n, p, r, a] = results;
-  return {
-    new: n ?? 0,
-    processing: p ?? 0,
-    resolved: r ?? 0,
-    archived: a ?? 0,
-    total: (n ?? 0) + (p ?? 0) + (r ?? 0) + (a ?? 0),
-  };
-}
+export async function getCaseById(caseId: string): Promise<CaseRow | null> {
+  const supabase = createClient();
 
-export async function getAspirationByCaseId(
-  caseId: string,
-): Promise<AspirationRow | null> {
-  const supabase = getSupabaseAdmin();
-  let { data, error } = await supabase
-    .from("aspirations")
-    .select("case_id, topic, message, anonymous, status, admin_reply, created_at, updated_at")
-    .eq("case_id", caseId)
-    .maybeSingle();
-
-  if (error && error.message.includes("admin_reply")) {
-    const fallback = await supabase
-      .from("aspirations")
-      .select("case_id, topic, message, anonymous, status, created_at, updated_at")
-      .eq("case_id", caseId)
-      .maybeSingle();
-    data = fallback.data ? { ...fallback.data, admin_reply: null } : null;
-    error = fallback.error;
-  }
+  const { data, error } = await supabase
+    .from('aspirations')
+    .select('id, case_id, topic, message, status, created_at, updated_at, admin_reply')
+    .eq('case_id', caseId)
+    .single();
 
   if (error) {
-    throw new Error(`getAspirationByCaseId failed: ${error.message}`);
-  }
-  if (!data) return null;
-
-  return {
-    caseId: data.case_id as string,
-    topic: data.topic as string,
-    message: data.message as string,
-    anonymous: data.anonymous as boolean,
-    status: data.status as AspirationStatus,
-    adminReply: (data.admin_reply as string | null) ?? null,
-    createdAt: data.created_at as string,
-    updatedAt: (data.updated_at as string) ?? (data.created_at as string),
-  };
-}
-
-export interface UpdateStatusResult {
-  ok: boolean;
-  reason?: "not_found" | "invalid_transition" | "db_error";
-  detail?: string;
-}
-
-export async function updateStatus(
-  caseId: string,
-  next: AspirationStatus,
-): Promise<UpdateStatusResult> {
-  const supabase = getSupabaseAdmin();
-
-  const current = await getAspirationByCaseId(caseId);
-  if (!current) return { ok: false, reason: "not_found" };
-  if (!canTransition(current.status, next)) {
-    return { ok: false, reason: "invalid_transition" };
+    if (error.code === 'PGRST116') return null; 
+    throw error;
   }
 
-  const { error } = await supabase
-    .from("aspirations")
-    .update({ status: next, updated_at: new Date().toISOString() })
-    .eq("case_id", caseId);
-
-  if (error) {
-    return { ok: false, reason: "db_error", detail: error.message };
-  }
-  return { ok: true };
+  return data as CaseRow | null;
 }
-
-export async function updateAdminReply(
-  caseId: string,
-  reply: string,
-): Promise<{ ok: boolean; reason?: string }> {
-  const supabase = getSupabaseAdmin();
-  const { error } = await supabase
-    .from("aspirations")
-    .update({ admin_reply: reply, updated_at: new Date().toISOString() })
-    .eq("case_id", caseId);
-
-  if (error) {
-    return { ok: false, reason: error.message };
-  }
-  return { ok: true };
-}
-
