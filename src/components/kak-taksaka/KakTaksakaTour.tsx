@@ -3,7 +3,7 @@
 /**
  * Kak Taksaka tour — spotlight walkthrough.
  *
- * V4.0 — SMART SCROLL + UNDERWATER POLISH
+ * V4.0 — SMART SCROLL + OBSIDIAN POLISH
  *
  * Smart scroll: before spotlight activates, we:
  *   1. Find the target element

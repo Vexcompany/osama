@@ -1,17 +1,17 @@
 "use client";
 
 /**
- * Premium underwater ambience (V7).
+ * Premium obsidian ambience (V8).
  *
- * Cinematic deep-ocean scene rendered onto one canvas + one RAF loop:
+ * Cinematic dark scene rendered onto one canvas + one RAF loop:
  *
  *   - Multi-stop vertical gradient (no banding)
- *   - Surface glow — the sense of looking up through water
- *   - Drifting caustic light pools near the surface
- *   - Soft god rays falling through the water
- *   - Slow luminous bokeh motes (dust suspended in light)
- *   - Crisp film grain over the ocean only (UI stays clean)
- *   - Depth haze + vignette for readability
+ *   - Cold specular wash near the top — light landing on black metal
+ *   - Slow diagonal sheen bands, the way light travels over brushed steel
+ *   - Soft platinum veils drifting across the ground
+ *   - Sparse, dim motes (dust caught in the light — not bubbles)
+ *   - Crisp film grain over the scene only (UI stays clean)
+ *   - Vignette + depth falloff for readability
  *
  * The scene is rendered onto a low-resolution offscreen "light layer"
  * which is upscaled onto the main canvas. That trick gives every glow a
@@ -19,8 +19,11 @@
  * makes the whole effect lightweight even on low-end phones.
  *
  * All positions are deterministic (seeded PRNG), so resizing the
- * viewport never makes the scene visibly jump. Intentionally no fish,
- * no cartoon shapes — just light and water.
+ * viewport never makes the scene visibly jump. Intentionally no water,
+ * no bubbles, no cartoon shapes — just light on a dark surface.
+ *
+ * NOTE: the folder/file is still named `underwater` for historical
+ * reasons; the scene it paints is no longer water.
  */
 import { useEffect, useRef } from "react";
 import styles from "./UnderwaterBackground.module.css";
@@ -40,7 +43,7 @@ function mulberry32(seed: number) {
   };
 }
 
-interface Pool {
+interface Veil {
   x: number;
   y: number;
   r: number;
@@ -49,7 +52,7 @@ interface Pool {
   alpha: number;
 }
 
-interface Ray {
+interface Sheen {
   x: number;
   w0: number;
   w1: number;
@@ -92,49 +95,49 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
     if (!lctx) return;
 
     // Deterministic scene seeds.
-    const rand = mulberry32(20260830);
+    const rand = mulberry32(20260902);
 
-    const pools: Pool[] = [];
-    for (let i = 0; i < 6; i += 1) {
-      pools.push({
-        x: 0.05 + rand() * 0.9,
-        y: 0.03 + rand() * 0.34,
-        r: 0.15 + rand() * 0.2,
-        speed: 0.00004 + rand() * 0.00008,
+    const veils: Veil[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      veils.push({
+        x: 0.08 + rand() * 0.84,
+        y: 0.04 + rand() * 0.5,
+        r: 0.22 + rand() * 0.26,
+        speed: 0.00003 + rand() * 0.00006,
         phase: rand() * Math.PI * 2,
-        alpha: 0.05 + rand() * 0.05,
+        alpha: 0.035 + rand() * 0.035,
       });
     }
 
-    const rays: Ray[] = [];
-    for (let i = 0; i < 7; i += 1) {
-      rays.push({
-        x: 0.06 + (i / 6) * 0.88 + (rand() - 0.5) * 0.08,
-        w0: 0.006 + rand() * 0.012,
-        w1: 0.02 + rand() * 0.028,
-        len: 0.5 + rand() * 0.26,
-        alpha: 0.045 + rand() * 0.05,
-        drift: (rand() - 0.5) * 0.07,
+    const sheens: Sheen[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      sheens.push({
+        x: 0.1 + (i / 3) * 0.8 + (rand() - 0.5) * 0.1,
+        w0: 0.01 + rand() * 0.02,
+        w1: 0.05 + rand() * 0.07,
+        len: 0.62 + rand() * 0.3,
+        alpha: 0.03 + rand() * 0.035,
+        drift: (rand() - 0.5) * 0.09,
         phase: rand() * Math.PI * 2,
       });
     }
 
     const motes: Mote[] = [];
-    for (let i = 0; i < 26; i += 1) {
+    for (let i = 0; i < 18; i += 1) {
       motes.push({
         x: rand(),
         y: rand(),
-        r: 0.7 + rand() * 1.9,
-        speed: 0.000012 + rand() * 0.00003,
+        r: 0.6 + rand() * 1.4,
+        speed: 0.000008 + rand() * 0.00002,
         phase: rand() * Math.PI * 2,
-        alpha: 0.12 + rand() * 0.24,
+        alpha: 0.08 + rand() * 0.16,
       });
     }
 
     // Film-grain specks (static, deterministic).
     const grain: Array<[number, number, number]> = [];
-    for (let i = 0; i < 170; i += 1) {
-      grain.push([rand(), rand(), 0.018 + rand() * 0.03]);
+    for (let i = 0; i < 150; i += 1) {
+      grain.push([rand(), rand(), 0.014 + rand() * 0.026]);
     }
 
     const onMotionChange = () => {
@@ -163,7 +166,7 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
     };
 
     const draw = (time: number) => {
-      if (!reducedMotion && time - lastFrame < (width < 700 ? 40 : 32)) {
+      if (!reducedMotion && time - lastFrame < (width < 700 ? 44 : 34)) {
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
@@ -173,81 +176,84 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
       const h = light.height;
       const t = reducedMotion ? 0 : time;
 
-      // 1) Deep cinematic base — many stops avoid banding.
-      const ocean = lctx.createLinearGradient(0, 0, 0, h);
-      ocean.addColorStop(0, "#0e3f5e");
-      ocean.addColorStop(0.16, "#0d4a6e");
-      ocean.addColorStop(0.36, "#0a3a58");
-      ocean.addColorStop(0.56, "#082e49");
-      ocean.addColorStop(0.76, "#051f35");
-      ocean.addColorStop(0.9, "#031524");
-      ocean.addColorStop(1, "#010b13");
-      lctx.fillStyle = ocean;
+      // 1) Obsidian base — many stops avoid banding.
+      const base = lctx.createLinearGradient(0, 0, 0, h);
+      base.addColorStop(0, "#141821");
+      base.addColorStop(0.16, "#10141c");
+      base.addColorStop(0.36, "#0c0f16");
+      base.addColorStop(0.56, "#090b11");
+      base.addColorStop(0.76, "#07080d");
+      base.addColorStop(0.9, "#05060a");
+      base.addColorStop(1, "#040507");
+      lctx.fillStyle = base;
       lctx.fillRect(0, 0, w, h);
 
-      // 2) Surface light — the feeling of looking upward through water.
-      const surface = lctx.createRadialGradient(
+      // 2) Specular wash — light landing on the top edge of dark metal.
+      const specular = lctx.createRadialGradient(
         w * 0.5,
-        -h * 0.06,
+        -h * 0.1,
         0,
         w * 0.5,
-        -h * 0.06,
-        h * 0.92,
+        -h * 0.1,
+        h * 0.95,
       );
-      surface.addColorStop(0, `rgba(150, 232, 255, ${0.2 * strength})`);
-      surface.addColorStop(0.35, `rgba(96, 205, 240, ${0.07 * strength})`);
-      surface.addColorStop(1, "rgba(60, 170, 215, 0)");
-      lctx.fillStyle = surface;
+      specular.addColorStop(0, `rgba(226, 233, 244, ${0.16 * strength})`);
+      specular.addColorStop(0.32, `rgba(178, 190, 210, ${0.055 * strength})`);
+      specular.addColorStop(1, "rgba(140, 152, 172, 0)");
+      lctx.fillStyle = specular;
       lctx.fillRect(0, 0, w, h);
 
-      // 3) Drifting caustic light pools.
+      // 3) Drifting platinum veils — large, soft, barely there.
       lctx.save();
       lctx.globalCompositeOperation = "screen";
-      for (const p of pools) {
-        const px =
-          p.x * w + (reducedMotion ? 0 : Math.sin(t * p.speed + p.phase) * w * 0.04);
+      for (const v of veils) {
+        const vx =
+          v.x * w + (reducedMotion ? 0 : Math.sin(t * v.speed + v.phase) * w * 0.05);
         const pulse = reducedMotion
           ? 1
-          : 0.75 + 0.25 * Math.sin(t * 0.0004 + p.phase * 2);
-        const r = p.r * w;
-        const g = lctx.createRadialGradient(px, p.y * h, 0, px, p.y * h, r);
-        g.addColorStop(0, `rgba(185, 240, 255, ${p.alpha * strength * pulse})`);
-        g.addColorStop(0.55, `rgba(120, 215, 245, ${p.alpha * 0.4 * strength * pulse})`);
-        g.addColorStop(1, "rgba(90, 195, 235, 0)");
+          : 0.72 + 0.28 * Math.sin(t * 0.0003 + v.phase * 2);
+        const r = v.r * w;
+        const g = lctx.createRadialGradient(vx, v.y * h, 0, vx, v.y * h, r);
+        g.addColorStop(0, `rgba(214, 222, 234, ${v.alpha * strength * pulse})`);
+        g.addColorStop(0.55, `rgba(166, 178, 197, ${v.alpha * 0.38 * strength * pulse})`);
+        g.addColorStop(1, "rgba(132, 144, 164, 0)");
         lctx.fillStyle = g;
-        lctx.fillRect(px - r, p.y * h - r, r * 2, r * 2);
+        lctx.fillRect(vx - r, v.y * h - r, r * 2, r * 2);
       }
 
-      // 4) Soft god rays falling from the surface.
-      for (const ray of rays) {
-        const rx =
-          ray.x * w + (reducedMotion ? 0 : Math.sin(t * 0.00005 + ray.phase) * ray.drift * w);
-        const w0 = ray.w0 * w;
-        const w1 = ray.w1 * w;
-        const len = ray.len * h;
-        const rg = lctx.createLinearGradient(0, 0, 0, len);
-        rg.addColorStop(0, `rgba(178, 235, 252, ${ray.alpha * strength})`);
-        rg.addColorStop(0.5, `rgba(130, 215, 244, ${ray.alpha * 0.5 * strength})`);
-        rg.addColorStop(1, "rgba(100, 190, 230, 0)");
-        lctx.fillStyle = rg;
+      // 4) Sheen bands — light travelling slowly across brushed steel.
+      for (const s of sheens) {
+        const sx =
+          s.x * w + (reducedMotion ? 0 : Math.sin(t * 0.00004 + s.phase) * s.drift * w);
+        const w0 = s.w0 * w;
+        const w1 = s.w1 * w;
+        const len = s.len * h;
+        const breathe = reducedMotion
+          ? 1
+          : 0.7 + 0.3 * Math.sin(t * 0.00022 + s.phase * 1.7);
+        const sg = lctx.createLinearGradient(0, 0, 0, len);
+        sg.addColorStop(0, `rgba(232, 238, 247, ${s.alpha * strength * breathe})`);
+        sg.addColorStop(0.5, `rgba(186, 197, 214, ${s.alpha * 0.45 * strength * breathe})`);
+        sg.addColorStop(1, "rgba(148, 160, 180, 0)");
+        lctx.fillStyle = sg;
         lctx.beginPath();
-        lctx.moveTo(rx - w0, 0);
-        lctx.lineTo(rx + w0, 0);
-        lctx.lineTo(rx + w1, len);
-        lctx.lineTo(rx - w1, len);
+        lctx.moveTo(sx - w0, 0);
+        lctx.lineTo(sx + w0, 0);
+        lctx.lineTo(sx + w1, len);
+        lctx.lineTo(sx - w1, len);
         lctx.closePath();
         lctx.fill();
       }
       lctx.restore();
 
-      // 5) Bokeh motes — slow, luminous dust drifting upward.
+      // 5) Motes — sparse dust caught in the light, drifting upward.
       lctx.save();
       lctx.globalCompositeOperation = "lighter";
       for (const m of motes) {
         const my = ((m.y * h - t * m.speed * h) % (h + 40) + h + 40) % (h + 40) - 20;
         const twinkle = reducedMotion
           ? 1
-          : 0.55 + 0.45 * Math.sin(t * 0.0009 + m.phase);
+          : 0.5 + 0.5 * Math.sin(t * 0.0007 + m.phase);
         const r = m.r;
         const g = lctx.createRadialGradient(
           m.x * w,
@@ -257,9 +263,9 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
           my,
           r * 3,
         );
-        g.addColorStop(0, `rgba(220, 248, 255, ${m.alpha * strength * twinkle})`);
-        g.addColorStop(0.4, `rgba(160, 230, 252, ${m.alpha * 0.35 * strength * twinkle})`);
-        g.addColorStop(1, "rgba(130, 220, 250, 0)");
+        g.addColorStop(0, `rgba(238, 243, 250, ${m.alpha * strength * twinkle})`);
+        g.addColorStop(0.4, `rgba(196, 206, 222, ${m.alpha * 0.32 * strength * twinkle})`);
+        g.addColorStop(1, "rgba(158, 170, 190, 0)");
         lctx.fillStyle = g;
         lctx.beginPath();
         lctx.arc(m.x * w, my, r * 3, 0, Math.PI * 2);
@@ -267,19 +273,19 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
       }
       lctx.restore();
 
-      // 6) Depth haze — darker toward the abyss for focus/readability.
+      // 6) Depth falloff — darker toward the bottom for focus/readability.
       const depth = lctx.createLinearGradient(0, h * 0.45, 0, h);
-      depth.addColorStop(0, "rgba(1, 9, 15, 0)");
-      depth.addColorStop(0.7, "rgba(1, 9, 15, 0.2)");
-      depth.addColorStop(1, "rgba(0, 6, 11, 0.55)");
+      depth.addColorStop(0, "rgba(2, 3, 5, 0)");
+      depth.addColorStop(0.7, "rgba(2, 3, 5, 0.22)");
+      depth.addColorStop(1, "rgba(1, 2, 3, 0.6)");
       lctx.fillStyle = depth;
       lctx.fillRect(0, h * 0.45, w, h * 0.55);
 
       const side = lctx.createLinearGradient(0, 0, w, 0);
-      side.addColorStop(0, "rgba(0, 6, 11, 0.26)");
-      side.addColorStop(0.22, "rgba(0, 6, 11, 0)");
-      side.addColorStop(0.78, "rgba(0, 6, 11, 0)");
-      side.addColorStop(1, "rgba(0, 6, 11, 0.26)");
+      side.addColorStop(0, "rgba(1, 2, 3, 0.3)");
+      side.addColorStop(0.22, "rgba(1, 2, 3, 0)");
+      side.addColorStop(0.78, "rgba(1, 2, 3, 0)");
+      side.addColorStop(1, "rgba(1, 2, 3, 0.3)");
       lctx.fillStyle = side;
       lctx.fillRect(0, 0, w, h);
 
@@ -289,9 +295,9 @@ export function UnderwaterBackground({ intensity = 1 }: UnderwaterBackgroundProp
       ctx.clearRect(0, 0, width, height);
       ctx.drawImage(light, 0, 0, width, height);
 
-      // 7) Crisp film grain over the ocean only (UI stays clean).
+      // 7) Crisp film grain over the scene only (UI stays clean).
       ctx.save();
-      ctx.fillStyle = "#dff4ff";
+      ctx.fillStyle = "#e6ebf3";
       for (const [gx, gy, ga] of grain) {
         ctx.globalAlpha = ga * strength;
         ctx.fillRect(gx * width, gy * height, 1, 1);

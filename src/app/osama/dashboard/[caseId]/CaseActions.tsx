@@ -73,7 +73,7 @@ export default function CaseActions({ caseId, currentStatus }: Props) {
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--glass-border-hover)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--glow-cyan)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--glow-platinum)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--glass-border)';

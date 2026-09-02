@@ -14,7 +14,7 @@
   font-family: inherit;
   /* Soft glow + slight depth */
   box-shadow:
-    0 12px 30px -8px rgba(20, 130, 170, 0.55),
+    0 12px 30px -8px rgba(96, 109, 131, 0.55),
     0 0 0 1px rgba(255, 255, 255, 0.06) inset;
   transition: transform 180ms ease, box-shadow 200ms ease, filter 200ms ease;
 }
@@ -22,7 +22,7 @@
 .button:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow:
-    0 18px 40px -10px rgba(20, 130, 170, 0.7),
+    0 18px 40px -10px rgba(96, 109, 131, 0.7),
     0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   filter: brightness(1.04);
 }
@@ -47,8 +47,8 @@
   background: radial-gradient(
     circle at 35% 30%,
     rgba(255, 255, 255, 0.18) 0%,
-    rgba(85, 215, 242, 0.08) 60%,
-    rgba(85, 215, 242, 0) 100%
+    rgba(217, 223, 232, 0.08) 60%,
+    rgba(217, 223, 232, 0) 100%
   );
 }
 

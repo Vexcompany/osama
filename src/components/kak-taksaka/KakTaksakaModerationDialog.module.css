@@ -5,7 +5,7 @@
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--danger-deep);
-  border: 1px solid rgba(255, 130, 150, 0.35);
+  border: 1px solid rgba(255, 152, 168, 0.35);
   box-shadow:
     0 10px 24px -10px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -54,14 +54,14 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 217, 224, 0.75);
+  color: rgba(255, 228, 233, 0.75);
 }
 
 .message {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.5;
-  color: #ffd9dc;
+  color: #ffe4e8;
 }
 
 .close {
@@ -88,7 +88,7 @@
 }
 
 .close:focus-visible {
-  outline: 2px solid #ffd9dc;
+  outline: 2px solid #ffe4e8;
   outline-offset: 2px;
 }
 

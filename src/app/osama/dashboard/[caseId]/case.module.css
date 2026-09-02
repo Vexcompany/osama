@@ -39,7 +39,7 @@
   gap: 24px;
   padding: 26px;
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, #0d2738 0%, #0a2030 100%);
+  background: linear-gradient(180deg, #0d1015 0%, #0a0c11 100%);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-md);
 }
@@ -101,20 +101,20 @@
 
 .status_new {
   color: var(--info);
-  background: rgba(85, 215, 242, 0.08);
-  border-color: rgba(85, 215, 242, 0.25);
+  background: rgba(217, 223, 232, 0.08);
+  border-color: rgba(217, 223, 232, 0.25);
 }
 
 .status_processing {
   color: var(--warn);
-  background: rgba(244, 196, 111, 0.08);
-  border-color: rgba(244, 196, 111, 0.25);
+  background: rgba(232, 192, 122, 0.08);
+  border-color: rgba(232, 192, 122, 0.25);
 }
 
 .status_resolved {
   color: var(--success);
-  background: rgba(105, 223, 163, 0.08);
-  border-color: rgba(105, 223, 163, 0.25);
+  background: rgba(116, 216, 168, 0.08);
+  border-color: rgba(116, 216, 168, 0.25);
 }
 
 .status_archived {
@@ -172,7 +172,7 @@
   color: var(--ink-mid);
   white-space: pre-wrap;
   word-wrap: break-word;
-  background: rgba(7, 24, 36, 0.6);
+  background: rgba(10, 12, 17, 0.6);
   border: 1px solid var(--line);
   border-left: 2px solid var(--accent);
   border-radius: var(--r-md);
@@ -235,13 +235,13 @@
 
 .actionPrimary {
   color: var(--success);
-  background: rgba(105, 223, 163, 0.08);
-  border-color: rgba(105, 223, 163, 0.3);
+  background: rgba(116, 216, 168, 0.08);
+  border-color: rgba(116, 216, 168, 0.3);
 }
 
 .actionPrimary:hover:not(:disabled) {
-  background: rgba(105, 223, 163, 0.14);
-  border-color: rgba(105, 223, 163, 0.45);
+  background: rgba(116, 216, 168, 0.14);
+  border-color: rgba(116, 216, 168, 0.45);
   color: var(--success);
 }
 
@@ -269,9 +269,9 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  background: rgba(58, 18, 32, 0.55);
-  border: 1px solid rgba(255, 130, 150, 0.35);
-  color: #ffd9de;
+  background: rgba(42, 18, 26, 0.55);
+  border: 1px solid rgba(255, 152, 168, 0.35);
+  color: #ffe4e8;
   padding: 10px 13px;
   border-radius: var(--r-sm);
   font-size: 12.5px;
@@ -287,7 +287,7 @@
   margin: 0;
   font-size: 12.5px;
   color: var(--ink-faint);
-  background: rgba(7, 24, 36, 0.5);
+  background: rgba(10, 12, 17, 0.5);
   border: 1px dashed var(--line-strong);
   padding: 12px 16px;
   border-radius: var(--r-sm);
@@ -315,7 +315,7 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--ink-hi);
-  background: rgba(7, 24, 36, 0.85);
+  background: rgba(10, 12, 17, 0.85);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   font-family: inherit;
@@ -333,7 +333,7 @@
 .replyTextarea:focus {
   border-color: var(--accent);
   box-shadow: var(--ring);
-  background: rgba(9, 28, 42, 0.95);
+  background: rgba(12, 15, 20, 0.95);
 }
 
 .replyControls {
@@ -360,13 +360,13 @@
   -webkit-tap-highlight-color: transparent;
   transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
-  box-shadow: 0 6px 18px -8px rgba(47, 185, 224, 0.6);
+  box-shadow: 0 6px 18px -8px rgba(168, 178, 193, 0.6);
 }
 
 .saveReplyBtn:hover:not(:disabled) {
-  background: #74e1f7;
+  background: #e4e9f1;
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px -8px rgba(47, 185, 224, 0.75);
+  box-shadow: 0 10px 24px -8px rgba(168, 178, 193, 0.75);
 }
 
 .saveReplyBtn:disabled {

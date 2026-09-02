@@ -4,7 +4,7 @@
  *
  * Sections:
  *   - Fixed navbar
- *   - Hero section (full-viewport, deep-ocean composition)
+ *   - Hero section (full-viewport, obsidian composition)
  *   - Keunggulan section (feature highlights)
  *   - Aspiration form section
  *   - Rules & Notes section

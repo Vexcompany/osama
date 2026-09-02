@@ -20,9 +20,9 @@
 }
 
 .button:hover:not(:disabled) {
-  background: rgba(255, 130, 150, 0.1);
+  background: rgba(255, 152, 168, 0.1);
   color: var(--danger);
-  border-color: rgba(255, 130, 150, 0.35);
+  border-color: rgba(255, 152, 168, 0.35);
 }
 
 .button:disabled {
