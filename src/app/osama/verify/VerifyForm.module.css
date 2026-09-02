@@ -24,7 +24,7 @@
   letter-spacing: 0.5em;
   text-align: center;
   color: var(--ink-hi);
-  background: rgba(7, 24, 36, 0.85);
+  background: rgba(10, 12, 17, 0.85);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   outline: none;
@@ -47,7 +47,7 @@
 .input:focus {
   border-color: var(--accent);
   box-shadow: var(--ring);
-  background: rgba(9, 28, 42, 0.95);
+  background: rgba(12, 15, 20, 0.95);
 }
 
 .input:disabled {
@@ -59,9 +59,9 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  background: rgba(58, 18, 32, 0.55);
-  border: 1px solid rgba(255, 130, 150, 0.35);
-  color: #ffd9de;
+  background: rgba(42, 18, 26, 0.55);
+  border: 1px solid rgba(255, 152, 168, 0.35);
+  color: #ffe4e8;
   padding: 10px 13px;
   border-radius: var(--r-sm);
   font-size: 13px;
@@ -91,14 +91,14 @@
   -webkit-tap-highlight-color: transparent;
   transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease;
-  box-shadow: 0 10px 24px -12px rgba(47, 185, 224, 0.65);
+  box-shadow: 0 10px 24px -12px rgba(168, 178, 193, 0.65);
   margin-top: 4px;
 }
 
 .submit:hover:not(:disabled) {
-  background: #74e1f7;
+  background: #e4e9f1;
   transform: translateY(-1px);
-  box-shadow: 0 14px 30px -12px rgba(47, 185, 224, 0.8);
+  box-shadow: 0 14px 30px -12px rgba(168, 178, 193, 0.8);
 }
 
 .submit:active:not(:disabled) {

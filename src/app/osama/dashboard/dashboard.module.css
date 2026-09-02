@@ -31,7 +31,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(5, 16, 25, 0.9);
+  background: rgba(7, 9, 12, 0.9);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -55,13 +55,14 @@
   width: 32px;
   height: 32px;
   border-radius: var(--r-sm);
-  background: linear-gradient(160deg, #4fc9ee 0%, #167aa3 100%);
+  background: var(--grad-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  /* Was white-on-cyan; platinum is light, so the mark inverts to ink. */
+  color: var(--accent-ink);
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 16px -10px rgba(168, 178, 193, 0.7);
 }
 
 .brandText {
@@ -228,7 +229,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 0 3px rgba(105, 223, 163, 0.15);
+  box-shadow: 0 0 0 3px rgba(116, 216, 168, 0.15);
   flex-shrink: 0;
 }
 
@@ -252,7 +253,7 @@
   gap: 14px;
   padding: 20px 20px 18px;
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, #0d2738 0%, #0a2030 100%);
+  background: linear-gradient(180deg, #0d1015 0%, #0a0c11 100%);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
   position: relative;
@@ -326,8 +327,8 @@
   color: var(--info);
 }
 .stat_new .statIcon {
-  background: rgba(85, 215, 242, 0.1);
-  border-color: rgba(85, 215, 242, 0.28);
+  background: rgba(217, 223, 232, 0.1);
+  border-color: rgba(217, 223, 232, 0.28);
 }
 .stat_new::before {
   background: var(--info);
@@ -337,8 +338,8 @@
   color: var(--warn);
 }
 .stat_processing .statIcon {
-  background: rgba(244, 196, 111, 0.1);
-  border-color: rgba(244, 196, 111, 0.28);
+  background: rgba(232, 192, 122, 0.1);
+  border-color: rgba(232, 192, 122, 0.28);
 }
 .stat_processing::before {
   background: var(--warn);
@@ -348,8 +349,8 @@
   color: var(--success);
 }
 .stat_resolved .statIcon {
-  background: rgba(105, 223, 163, 0.1);
-  border-color: rgba(105, 223, 163, 0.28);
+  background: rgba(116, 216, 168, 0.1);
+  border-color: rgba(116, 216, 168, 0.28);
 }
 .stat_resolved::before {
   background: var(--success);
@@ -363,7 +364,7 @@
   border-color: var(--line);
 }
 .stat_total::before {
-  background: linear-gradient(90deg, var(--accent), rgba(85, 215, 242, 0.15));
+  background: linear-gradient(90deg, var(--accent), rgba(217, 223, 232, 0.15));
 }
 
 /* ─── List card ──────────────────────────────────────────────────── */
@@ -374,7 +375,7 @@
   gap: 14px;
   padding: 22px;
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, #0d2738 0%, #0a2030 100%);
+  background: linear-gradient(180deg, #0d1015 0%, #0a0c11 100%);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-md);
 }
@@ -439,7 +440,7 @@
   padding: 0 14px 0 36px;
   font-size: 13.5px;
   color: var(--ink-hi);
-  background: rgba(7, 24, 36, 0.85);
+  background: rgba(10, 12, 17, 0.85);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   outline: none;
@@ -455,7 +456,7 @@
 .searchInput:focus {
   border-color: var(--accent);
   box-shadow: var(--ring);
-  background: rgba(9, 28, 42, 0.95);
+  background: rgba(12, 15, 20, 0.95);
 }
 
 .filterGroup {
@@ -520,14 +521,14 @@
   padding: 13px 14px;
   text-decoration: none;
   border-radius: var(--r-sm);
-  background: rgba(7, 24, 36, 0.55);
-  border: 1px solid rgba(150, 210, 235, 0.07);
+  background: rgba(10, 12, 17, 0.55);
+  border: 1px solid rgba(208, 216, 228, 0.07);
   transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease,
     transform var(--dur-fast) var(--ease-out);
 }
 
 .row:hover {
-  background: rgba(9, 28, 42, 0.9);
+  background: rgba(12, 15, 20, 0.9);
   border-color: var(--line-strong);
   transform: translateY(-1px);
 }
@@ -597,20 +598,20 @@
 
 .statusNew {
   color: var(--info);
-  background: rgba(85, 215, 242, 0.08);
-  border-color: rgba(85, 215, 242, 0.25);
+  background: rgba(217, 223, 232, 0.08);
+  border-color: rgba(217, 223, 232, 0.25);
 }
 
 .statusProcessing {
   color: var(--warn);
-  background: rgba(244, 196, 111, 0.08);
-  border-color: rgba(244, 196, 111, 0.25);
+  background: rgba(232, 192, 122, 0.08);
+  border-color: rgba(232, 192, 122, 0.25);
 }
 
 .statusResolved {
   color: var(--success);
-  background: rgba(105, 223, 163, 0.08);
-  border-color: rgba(105, 223, 163, 0.25);
+  background: rgba(116, 216, 168, 0.08);
+  border-color: rgba(116, 216, 168, 0.25);
 }
 
 .statusArchived {
@@ -632,14 +633,14 @@
   text-decoration: none;
   padding: 14px 16px;
   border-radius: var(--r-md);
-  background: rgba(7, 24, 36, 0.7);
+  background: rgba(10, 12, 17, 0.7);
   border: 1px solid var(--line);
   transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
 }
 
 .mobileRow:hover {
   border-color: var(--line-strong);
-  background: rgba(9, 28, 42, 0.85);
+  background: rgba(12, 15, 20, 0.85);
 }
 
 .mobileTop {
@@ -726,7 +727,7 @@
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: rgba(150, 210, 235, 0.06);
+  background: rgba(208, 216, 228, 0.06);
   border-radius: var(--r-sm);
 }
 
@@ -737,7 +738,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(150, 210, 235, 0.07),
+    rgba(208, 216, 228, 0.07),
     transparent
   );
   background-size: 200% 100%;
@@ -770,7 +771,7 @@
 .listSkeleton {
   padding: 22px;
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, #0d2738 0%, #0a2030 100%);
+  background: linear-gradient(180deg, #0d1015 0%, #0a0c11 100%);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-md);
   display: flex;

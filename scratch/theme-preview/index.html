@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OSIS Ngobrol Yuk — Proposal Tema Premium (A/B/C/D)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   PROPOSAL SHELL — neutral frame so each theme reads honestly.
+   The mock markup below is a 1:1 stand-in for the real page sections:
+   navbar / hero / keunggulan cards / form card / rules & notes.
+   ══════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#101012;
+  color:#EDEAE4;
+  font-family:"Inter",ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.shell{max-width:1240px;margin:0 auto;padding:40px 22px 90px}
+.propHead{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.propKicker{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#8C8579}
+.propTitle{margin:0;font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(28px,4vw,42px);letter-spacing:-.02em;color:#F6F2E9}
+.propDesc{margin:0;max-width:70ch;color:#A49C8E}
+.propNote{margin:16px 0 0;padding:14px 16px;border:1px solid rgba(201,169,97,.28);border-radius:8px;background:rgba(201,169,97,.06);color:#D9C9A3;font-size:13px}
+
+/* tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 18px}
+.tab{
+  appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;
+  padding:10px 16px;border-radius:999px;color:#B9B2A5;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  transition:all .18s cubic-bezier(.16,1,.3,1);
+}
+.tab:hover{color:#F2EEE6;border-color:rgba(255,255,255,.22)}
+.tab[aria-selected="true"]{color:#14100A;background:#D8BC7C;border-color:#D8BC7C}
+
+/* meta panel: references + palette + type + scope */
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+.metaCard{padding:16px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.028)}
+.metaCard h4{margin:0 0 10px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8C8579;font-weight:700}
+.metaCard ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#CFC9BD}
+.metaCard li{display:flex;gap:8px;align-items:baseline}
+.metaCard li b{color:#F0ECE3;font-weight:600}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:62px;font-size:9.5px;letter-spacing:.02em;color:#9E968A;text-align:center}
+.sw i{display:block;height:34px;border-radius:7px;border:1px solid rgba(255,255,255,.14);margin-bottom:5px}
+.spec{font-size:12.5px;color:#CFC9BD;display:flex;flex-direction:column;gap:8px}
+.spec .display{font-size:26px;line-height:1.1;color:#F2EEE6}
+.spec .small{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#9E968A}
+
+.panel{display:none}
+.panel[data-open="true"]{display:block}
+.frame{border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;box-shadow:0 40px 90px -40px rgba(0,0,0,.9)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SHARED MOCK STRUCTURE — themed purely by CSS custom properties
+   ══════════════════════════════════════════════════════════════════════ */
+.mock{
+  --bg0:#000; --bg1:#111; --panel:rgba(255,255,255,.04); --panelSolid:#111;
+  --ink:#fff; --inkMid:#bbb; --inkLo:#888; --accent:#fff; --accentInk:#000;
+  --line:rgba(255,255,255,.14); --radius:14px; --radiusSm:10px;
+  --display:"Inter",sans-serif; --displayWeight:700; --displayTrack:-.02em;
+  --eyebrowTrack:.2em; --hair:1px; --glow:none; --grad:linear-gradient(90deg,#fff,#999);
+  position:relative;overflow:hidden;
+  background:var(--bg0);color:var(--ink);
+  font-family:"Inter",ui-sans-serif,system-ui,sans-serif;
+}
+.mock::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:var(--ambient);opacity:var(--ambientOpacity,1);
+}
+.mock .grain{
+  position:absolute;inset:0;pointer-events:none;opacity:var(--grainOpacity,.045);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.5'/></svg>");
+}
+.mock > *{position:relative;z-index:2}
+
+/* navbar */
+.mNav{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin:16px auto 0;width:min(100% - 32px,1080px);padding:10px 16px;
+  border:var(--hair) solid var(--line);border-radius:var(--radiusSm);
+  background:var(--navBg,rgba(255,255,255,.03));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:var(--navShadow,none);
+}
+.mBrand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:14.5px;letter-spacing:-.01em;color:var(--ink)}
+.mMark{width:26px;height:26px;border-radius:var(--markRadius,8px);background:var(--grad);display:grid;place-items:center;color:var(--accentInk);font-size:10px;font-weight:800;letter-spacing:.02em}
+.mLinks{display:flex;align-items:center;gap:22px;font-size:12.5px;color:var(--inkMid)}
+.mLinks span{position:relative;padding:2px 0;cursor:default}
+.mLinks .on{color:var(--ink)}
+.mLinks .on::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:1px;background:var(--accent);opacity:.7}
+.mNavCta{font-size:12px;font-weight:650;padding:8px 14px;border-radius:var(--radiusSm);border:var(--hair) solid var(--accentLine,var(--line));color:var(--ink);background:transparent}
+
+/* hero */
+.mHero{padding:74px 24px 62px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px}
+.mEyebrow{
+  display:inline-flex;align-items:center;gap:9px;padding:7px 14px;
+  font-size:10px;font-weight:700;letter-spacing:var(--eyebrowTrack);text-transform:uppercase;
+  color:var(--inkMid);border:var(--hair) solid var(--line);border-radius:var(--chipRadius,999px);
+  background:var(--chipBg,transparent);
+}
+.mEyebrow i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:var(--dotGlow,none)}
+.mH1{
+  margin:0;max-width:15ch;font-family:var(--display);font-weight:var(--displayWeight);
+  font-size:clamp(38px,6.2vw,70px);line-height:1.03;letter-spacing:var(--displayTrack);
+  color:var(--ink);text-wrap:balance;
+}
+.mH1 em{font-style:var(--accentStyle,normal);color:var(--accentText,var(--accent))}
+.mH1 em.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.mSub{margin:0;max-width:52ch;font-size:15px;line-height:1.75;color:var(--inkLo)}
+.mCtas{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.mBtn{
+  display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 22px;
+  font-size:13.5px;font-weight:650;border-radius:var(--radiusSm);cursor:pointer;
+  transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s ease,border-color .2s ease;
+}
+.mBtn:hover{transform:translateY(-2px)}
+.mBtnP{position:relative;overflow:hidden;color:var(--accentInk);background:var(--grad);border:var(--hair) solid var(--btnBorder,transparent);box-shadow:var(--btnGlow,none)}
+.mBtnP::after{content:"";position:absolute;top:0;left:-140%;width:52%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.42),transparent);transform:skewX(-18deg);transition:left .62s cubic-bezier(.16,1,.3,1)}
+.mBtnP:hover::after{left:160%}
+.mBtnS{color:var(--ink);background:var(--btnSBg,transparent);border:var(--hair) solid var(--line)}
+.mBtnS:hover{border-color:var(--accentLine,var(--line))}
+.mTrust{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0;margin-top:8px;padding:4px;border:var(--hair) solid var(--line);border-radius:var(--radiusSm);background:var(--chipBg,transparent)}
+.mTrust span{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--inkMid);white-space:nowrap}
+.mTrust span::before{content:"";width:12px;height:12px;border-radius:3px;background:var(--grad);opacity:.85}
+.mTrust b{width:1px;height:16px;background:var(--line)}
+
+/* sections */
+.mSec{padding:56px 24px}
+.mSecIn{width:min(100%,1080px);margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.mH2{margin:0;max-width:22ch;font-family:var(--display);font-weight:var(--displayWeight);font-size:clamp(24px,3.4vw,36px);line-height:1.12;letter-spacing:var(--displayTrack);color:var(--ink)}
+.mSecDesc{margin:0 0 22px;max-width:56ch;font-size:14px;line-height:1.75;color:var(--inkLo)}
+.mGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;width:100%;text-align:left}
+.mCard{
+  position:relative;display:flex;flex-direction:column;gap:12px;min-height:200px;padding:22px 20px;
+  border:var(--hair) solid var(--line);border-radius:var(--radius);background:var(--panel);
+  box-shadow:var(--cardShadow,none);overflow:hidden;
+}
+.mCard::before{content:"";position:absolute;inset:0;background:var(--cardSheen,none);pointer-events:none}
+.mCardTop{display:flex;align-items:center;justify-content:space-between}
+.mIcon{width:38px;height:38px;border-radius:var(--iconRadius,11px);display:grid;place-items:center;color:var(--accentInk);background:var(--grad);box-shadow:var(--iconGlow,none)}
+.mIcon svg{width:18px;height:18px}
+.mIdx{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--inkLo);font-variant-numeric:tabular-nums}
+.mCard h3{margin:0;font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
+.mCard p{margin:0;font-size:13px;line-height:1.7;color:var(--inkLo)}
+.mRule{width:100%;height:1px;background:var(--accentLine,var(--line));opacity:.5;margin-top:auto}
+
+/* form */
+.mFormLayout{display:grid;grid-template-columns:1fr 1.05fr;gap:26px;width:min(100%,1080px);margin:0 auto;text-align:left;align-items:start}
+.mFormInfo h2{margin:12px 0 12px;font-family:var(--display);font-weight:var(--displayWeight);font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:var(--displayTrack);color:var(--ink)}
+.mFormInfo p{margin:0 0 20px;font-size:14px;line-height:1.78;color:var(--inkLo);max-width:44ch}
+.mList{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px;font-size:13.5px;color:var(--inkMid)}
+.mList li{display:flex;gap:10px;align-items:center}
+.mList i{width:19px;height:19px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--accentSoft,rgba(255,255,255,.07));color:var(--accent);font-size:10px;font-weight:800}
+.mFormCard{padding:24px;border:var(--hair) solid var(--line);border-radius:var(--radius);background:var(--panelSolid,var(--panel));box-shadow:var(--cardShadow,none)}
+.mFormHead{display:flex;gap:13px;align-items:flex-start;margin-bottom:18px}
+.mFormHead h3{margin:0 0 3px;font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:-.01em;color:var(--ink)}
+.mFormHead p{margin:0;font-size:12.5px;color:var(--inkLo)}
+.mArea{
+  width:100%;min-height:132px;resize:none;padding:14px;border-radius:var(--radiusSm);
+  border:var(--hair) solid var(--line);background:var(--inputBg,rgba(0,0,0,.18));
+  color:var(--ink);font:inherit;font-size:14px;line-height:1.6;
+}
+.mArea:focus{outline:none;border-color:var(--accentLine,var(--line));box-shadow:var(--inputRing,none)}
+.mMeta{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:11.5px;color:var(--inkLo)}
+.mMeta b{color:var(--inkMid);font-weight:600;font-variant-numeric:tabular-nums}
+.mSubmit{width:100%;margin-top:14px}
+.mShield{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:11px;color:var(--inkLo)}
+
+/* rules */
+.mRulesGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;text-align:left}
+.mRules{padding:22px;border:var(--hair) solid var(--line);border-radius:var(--radius);background:var(--panel)}
+.mRulesHead{display:flex;gap:11px;align-items:center;margin-bottom:14px;padding-bottom:13px;border-bottom:var(--hair) solid var(--accentLine,var(--line))}
+.mRulesHead h3{margin:0;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:var(--eyebrowTrack);text-transform:uppercase;color:var(--ink)}
+.mRules ol{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:9px;font-size:12.8px;line-height:1.7;color:var(--inkMid)}
+.mRules ol::marker{color:var(--accent)}
+.mFoot{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;padding:22px 24px;border-top:var(--hair) solid var(--line);background:var(--footBg,transparent)}
+.mFoot div{display:flex;gap:11px;align-items:center;font-size:12px;color:var(--inkLo)}
+.mFoot strong{display:block;font-size:12.5px;color:var(--ink);font-weight:600}
+.mFoot i{width:30px;height:30px;flex:none;border-radius:var(--iconRadius,9px);background:var(--accentSoft,rgba(255,255,255,.06));border:var(--hair) solid var(--accentLine,var(--line))}
+
+@media (max-width:900px){
+  .mGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mFormLayout,.mRulesGrid{grid-template-columns:1fr}
+  .mLinks{display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="propHead">
+    <div class="propKicker">Proposal · Pengganti tema lautan</div>
+    <h1 class="propTitle">Empat arah "premium &amp; mahal"</h1>
+    <p class="propDesc">
+      Setiap panel di bawah adalah mock 1:1 dari struktur halaman yang sudah ada sekarang
+      (navbar → hero → keunggulan → form → rules &amp; notes). Isi teks, section, dan urutan
+      <b>tidak diubah</b> — hanya bahasa visualnya yang diganti.
+    </p>
+    <p class="propNote">
+      Belum ada satu baris pun kode aplikasi yang diubah. File ini murni mockup pembanding
+      (<code>scratch/theme-preview/index.html</code>) dan bisa dihapus kapan saja.
+    </p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-target="a">A · Onyx &amp; Champagne</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="b">B · Obsidian Platinum</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="c">C · Ivory &amp; Ink</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="d">D · Emerald Vault</button>
+  </div>
+
+  <section class="panel" data-open="true" data-panel="a">
+    <div class="meta" data-meta="a"></div>
+    <div class="frame"><div class="mock" data-theme="a"></div></div>
+  </section>
+  <section class="panel" data-open="false" data-panel="b">
+    <div class="meta" data-meta="b"></div>
+    <div class="frame"><div class="mock" data-theme="b"></div></div>
+  </section>
+  <section class="panel" data-open="false" data-panel="c">
+    <div class="meta" data-meta="c"></div>
+    <div class="frame"><div class="mock" data-theme="c"></div></div>
+  </section>
+  <section class="panel" data-open="false" data-panel="d">
+    <div class="meta" data-meta="d"></div>
+    <div class="frame"><div class="mock" data-theme="d"></div></div>
+  </section>
+</div>
+
+<template id="mockTpl">
+  <div class="grain"></div>
+  <nav class="mNav">
+    <div class="mBrand"><span class="mMark">OY</span> Osis Ngobrol Yuk</div>
+    <div class="mLinks"><span class="on">Beranda</span><span>Keunggulan</span><span>Aspirasi</span><span>Rules &amp; Notes</span></div>
+    <div class="mNavCta">Kirim Aspirasi</div>
+  </nav>
+
+  <section class="mHero">
+    <div class="mEyebrow"><i></i> OSIS Ngobrol Yuk · SMKN 5 Madiun</div>
+    <h1 class="mH1">Suaramu Penting,<br><em class="grad">Bersama Kita Beraksi</em></h1>
+    <p class="mSub">Sampaikan aspirasi, saran, dan masukanmu untuk membuat SMKN 5 Madiun menjadi lebih baik.</p>
+    <div class="mCtas">
+      <span class="mBtn mBtnP">Kirim Aspirasi →</span>
+      <span class="mBtn mBtnS">Lihat Informasi</span>
+    </div>
+    <div class="mTrust"><span>Aman &amp; Anonim</span><b></b><span>Langsung ke OSIS</span><b></b><span>100% Gratis</span></div>
+  </section>
+
+  <section class="mSec">
+    <div class="mSecIn">
+      <div class="mEyebrow">Mengapa Osis Ngobrol Yuk?</div>
+      <h2 class="mH2">Platform Aspirasi yang Aman &amp; Tepat Sasaran</h2>
+      <p class="mSecDesc">Dirancang khusus untuk siswa SMKN 5 Madiun agar setiap suara bisa didengar dan ditindaklanjuti oleh OSIS.</p>
+      <div class="mGrid">
+        <article class="mCard"><div class="mCardTop"><span class="mIcon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 20.5C12 20.5 5 16.5 5 11V5.5L12 3l7 2.5V11c0 5.5-7 9.5-7 9.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 11.5 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mIdx">01</span></div><h3>Aman &amp; Anonim</h3><p>Identitasmu terjaga sepenuhnya. Kamu bisa bersuara tanpa khawatir siapapun tahu.</p><div class="mRule"></div></article>
+        <article class="mCard"><div class="mCardTop"><span class="mIcon"><svg viewBox="0 0 24 24" fill="none"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mIdx">02</span></div><h3>Langsung ke OSIS</h3><p>Aspirasimu langsung diterima pengurus OSIS tanpa perantara yang tidak perlu.</p><div class="mRule"></div></article>
+        <article class="mCard"><div class="mCardTop"><span class="mIcon"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.5 5.5 5.5.7-4 3.8 1.1 5.6L12 15.8l-5.1 2.8L8 13 4 9.2l5.5-.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><span class="mIdx">03</span></div><h3>Untuk Perubahan</h3><p>Setiap aspirasi dipertimbangkan berdasarkan urgensi, dampak, dan kelayakannya.</p><div class="mRule"></div></article>
+        <article class="mCard"><div class="mCardTop"><span class="mIcon"><svg viewBox="0 0 24 24" fill="none"><path d="M20 11v10H4V11M22 6H2v5h20V6ZM12 21V11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mIdx">04</span></div><h3>100% Gratis</h3><p>Tidak ada biaya apapun. Platform ini program kerja OSIS untuk seluruh siswa.</p><div class="mRule"></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="mSec">
+    <div class="mFormLayout">
+      <div class="mFormInfo">
+        <div class="mEyebrow">Osis Ngobrol Yuk</div>
+        <h2>Ruang Aspirasimu</h2>
+        <p>Sampaikan aspirasi, kritik, atau saranmu secara bebas dan bertanggung jawab. Setiap suara penting untuk membangun sekolah yang lebih baik bersama.</p>
+        <ul class="mList">
+          <li><i>✓</i> Identitasmu terjaga sepenuhnya</li>
+          <li><i>✓</i> Langsung diterima pengurus OSIS</li>
+          <li><i>✓</i> Gratis tanpa biaya apapun</li>
+          <li><i>✓</i> Dapat dikirim kapan saja</li>
+        </ul>
+      </div>
+      <div class="mFormCard">
+        <div class="mFormHead">
+          <span class="mIcon"><svg viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+          <div><h3>Kirim Aspirasi</h3><p>Sampaikan aspirasimu secara bebas dan bertanggung jawab.</p></div>
+        </div>
+        <textarea class="mArea" readonly>Tulis pesanmu di sini…</textarea>
+        <div class="mMeta"><span>Minimal 10 karakter · maksimal 500</span><b>0 / 500</b></div>
+        <span class="mBtn mBtnP mSubmit">Kirim Aspirasi</span>
+        <div class="mShield">🔒 Identitas pengirim tidak pernah disimpan maupun dikirim.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mSec">
+    <div class="mSecIn">
+      <div class="mEyebrow">Baca Sebelum Mengirim</div>
+      <h2 class="mH2">Rules &amp; Notes</h2>
+      <div class="mRulesGrid">
+        <div class="mRules">
+          <div class="mRulesHead"><h3>Rules</h3></div>
+          <ol>
+            <li>Osis Ngobrol Yuk! adalah program kerja OSIS untuk menampung aspirasi siswa siswi SMKN 5 Madiun secara digital.</li>
+            <li>Gunakan Bahasa yang Sopan &amp; Santun saat akan menyampaikan aspirasi.</li>
+            <li>Dilarang menyebut nama siswa/guru secara langsung dalam konteks negatif.</li>
+            <li>Pastikan informasi/masukan yang disampaikan benar dan bisa dipertanggungjawabkan.</li>
+          </ol>
+        </div>
+        <div class="mRules">
+          <div class="mRulesHead"><h3>Notes</h3></div>
+          <ol>
+            <li>OSIS berhak menyaring semua saran, masukan, dan aspirasi yang masuk.</li>
+            <li>Aspirasi yang melanggar aturan tidak akan diproses atau dipublikasikan.</li>
+            <li>OSIS berhak menentukan aspirasi mana yang diprioritaskan berdasarkan tingkat urgensi, dampak bagi siswa, dan kelayakan.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mFoot">
+    <div><i></i><div><strong>Aman &amp; Anonim</strong>Identitas kamu terjaga</div></div>
+    <div><i></i><div><strong>Langsung ke OSIS</strong>Aspirasi sampai ke kami</div></div>
+    <div><i></i><div><strong>Untuk Perubahan</strong>Bersama membangun sekolah</div></div>
+    <div><i></i><div><strong>100% Gratis</strong>Tanpa biaya apapun</div></div>
+  </footer>
+</template>
+
+<script>
+const THEMES = {
+  a: {
+    name: "Onyx & Champagne",
+    tagline: "Editorial luxury — tenang, mahal, tanpa basa-basi.",
+    refs: ["cartier.com", "rolls-roycemotorcars.com", "aman.com", "patek.com"],
+    palette: [["#0A0A0B","Onyx"],["#141417","Panel"],["#C9A961","Champagne"],["#EBD9A8","Highlight"],["#F3EFE6","Ivory"]],
+    type: [["Cormorant Garamond 600","display"],["Inter 400/500","body"]],
+    vars: {
+      "--bg0":"#0A0A0B","--bg1":"#141417",
+      "--panel":"linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015))","--panelSolid":"#121214",
+      "--ink":"#F3EFE6","--inkMid":"#C6C0B4","--inkLo":"#8E887C",
+      "--accent":"#C9A961","--accentInk":"#16110A","--accentLine":"rgba(201,169,97,.32)","--accentSoft":"rgba(201,169,97,.09)",
+      "--line":"rgba(226,214,186,.13)","--radius":"6px","--radiusSm":"4px","--iconRadius":"4px","--markRadius":"4px","--chipRadius":"999px",
+      "--display":"'Cormorant Garamond',serif","--displayWeight":"600","--displayTrack":".005em","--eyebrowTrack":".28em",
+      "--grad":"linear-gradient(135deg,#F0DFAF 0%,#C9A961 46%,#A8863F 100%)",
+      "--ambient":"radial-gradient(60% 46% at 50% -6%,rgba(201,169,97,.16),transparent 66%),radial-gradient(44% 40% at 82% 108%,rgba(201,169,97,.07),transparent 70%),linear-gradient(180deg,#0C0C0E,#0A0A0B 52%,#08080A)",
+      "--grainOpacity":".06",
+      "--navBg":"rgba(10,10,11,.62)","--navShadow":"0 18px 40px -26px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04)",
+      "--chipBg":"rgba(255,255,255,.03)","--dotGlow":"0 0 12px rgba(201,169,97,.8)",
+      "--btnBorder":"rgba(240,223,175,.5)","--btnGlow":"0 18px 44px -20px rgba(201,169,97,.75),inset 0 1px 0 rgba(255,255,255,.35)",
+      "--btnSBg":"rgba(255,255,255,.02)","--cardShadow":"0 26px 60px -40px rgba(0,0,0,1),inset 0 1px 0 rgba(255,255,255,.04)",
+      "--cardSheen":"linear-gradient(140deg,rgba(201,169,97,.07),transparent 42%)",
+      "--iconGlow":"0 8px 22px -10px rgba(201,169,97,.8)",
+      "--inputBg":"rgba(0,0,0,.32)","--inputRing":"0 0 0 1px rgba(201,169,97,.42)",
+      "--footBg":"rgba(255,255,255,.015)","--accentText":"#D9BC77"
+    },
+    changes: ["Canvas lautan diganti <b>onyx + sapuan cahaya hangat</b> (grain halus, tanpa air/caustics)", "Aksen cyan → <b>champagne gold</b>, garis rambut 1px, radius tajam 4–6px", "Judul pakai <b>serif Cormorant</b>, eyebrow uppercase tracking lebar", "Tombol utama jadi plat emas dengan sheen sweep"],
+    keeps: ["Semua section, urutan, dan teks (termasuk Rules &amp; Notes)", "Komponen Kak Taksaka tetap read-only", "API, auth, database, dan Case ID <code>OSM-</code>"]
+  },
+  b: {
+    name: "Obsidian Platinum",
+    tagline: "Kemewahan teknologi — presisi, dingin, high-contrast.",
+    refs: ["apple.com", "linear.app", "porsche.com", "bang-olufsen.com"],
+    palette: [["#06070A","Obsidian"],["#101218","Panel"],["#D9DFE8","Platinum"],["#8E97A6","Steel"],["#F4F6FA","Ice"]],
+    type: [["Sora 700/800","display"],["Inter 400/500","body"]],
+    vars: {
+      "--bg0":"#06070A","--bg1":"#101218",
+      "--panel":"linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018))","--panelSolid":"#0C0E13",
+      "--ink":"#F4F6FA","--inkMid":"#B7BECA","--inkLo":"#7E8695",
+      "--accent":"#D9DFE8","--accentInk":"#07080B","--accentLine":"rgba(217,223,232,.3)","--accentSoft":"rgba(217,223,232,.08)",
+      "--line":"rgba(255,255,255,.1)","--radius":"16px","--radiusSm":"12px","--iconRadius":"12px","--markRadius":"10px","--chipRadius":"999px",
+      "--display":"'Sora',sans-serif","--displayWeight":"700","--displayTrack":"-.038em","--eyebrowTrack":".18em",
+      "--grad":"linear-gradient(135deg,#FFFFFF 0%,#DDE3EC 34%,#9AA4B4 74%,#6E7787 100%)",
+      "--ambient":"radial-gradient(52% 40% at 50% -8%,rgba(190,205,230,.15),transparent 68%),radial-gradient(40% 34% at 12% 96%,rgba(120,140,175,.1),transparent 70%),linear-gradient(180deg,#0A0C11,#06070A 58%,#040507)",
+      "--grainOpacity":".038",
+      "--navBg":"rgba(8,10,14,.6)","--navShadow":"0 20px 50px -28px rgba(0,0,0,1),inset 0 1px 0 rgba(255,255,255,.06)",
+      "--chipBg":"rgba(255,255,255,.035)","--dotGlow":"0 0 14px rgba(220,228,240,.85)",
+      "--btnBorder":"rgba(255,255,255,.55)","--btnGlow":"0 20px 46px -20px rgba(190,204,228,.6),inset 0 1px 0 rgba(255,255,255,.6)",
+      "--btnSBg":"rgba(255,255,255,.04)","--cardShadow":"0 30px 70px -44px rgba(0,0,0,1),inset 0 1px 0 rgba(255,255,255,.05)",
+      "--cardSheen":"linear-gradient(160deg,rgba(255,255,255,.07),transparent 46%)",
+      "--iconGlow":"0 10px 26px -12px rgba(210,220,236,.7)",
+      "--inputBg":"rgba(255,255,255,.03)","--inputRing":"0 0 0 1px rgba(217,223,232,.45)",
+      "--footBg":"rgba(255,255,255,.02)","--accentText":"#E4E9F1"
+    },
+    changes: ["Canvas lautan diganti <b>obsidian mesh + aurora perak</b> yang bergerak sangat pelan", "Aksen cyan → <b>gradien platinum</b>; teks aksen jadi silver, bukan neon", "Tipografi <b>Sora tight-tracking</b> dengan lompatan ukuran besar", "Surface kaca low-opacity + inner hairline putih"],
+    keeps: ["Semua section, urutan, dan teks (termasuk Rules &amp; Notes)", "Komponen Kak Taksaka tetap read-only", "API, auth, database, dan Case ID <code>OSM-</code>"]
+  },
+  c: {
+    name: "Ivory & Ink",
+    tagline: "Quiet luxury mode terang — kertas hangat, tinta, kuningan.",
+    refs: ["aesop.com", "loropiana.com", "hermes.com", "muji.com"],
+    palette: [["#F6F3EC","Ivory"],["#FFFFFF","Card"],["#14151A","Ink"],["#8A6B3B","Brass"],["#6E6A62","Stone"]],
+    type: [["Fraunces 500","display"],["Inter 400/500","body"]],
+    vars: {
+      "--bg0":"#F6F3EC","--bg1":"#FFFFFF",
+      "--panel":"#FFFFFF","--panelSolid":"#FFFFFF",
+      "--ink":"#14151A","--inkMid":"#4B4842","--inkLo":"#7A766D",
+      "--accent":"#8A6B3B","--accentInk":"#FFFFFF","--accentLine":"rgba(20,21,26,.16)","--accentSoft":"rgba(138,107,59,.1)",
+      "--line":"rgba(20,21,26,.11)","--radius":"4px","--radiusSm":"3px","--iconRadius":"3px","--markRadius":"3px","--chipRadius":"999px",
+      "--display":"'Fraunces',serif","--displayWeight":"500","--displayTrack":"-.015em","--eyebrowTrack":".26em",
+      "--grad":"linear-gradient(135deg,#1B1C22 0%,#2A2B33 100%)",
+      "--ambient":"radial-gradient(58% 44% at 50% -10%,rgba(255,255,255,.9),transparent 62%),radial-gradient(46% 38% at 88% 104%,rgba(138,107,59,.1),transparent 70%),linear-gradient(180deg,#FAF8F3,#F4F1E9 60%,#EFEBE1)",
+      "--grainOpacity":".05",
+      "--navBg":"rgba(255,255,255,.72)","--navShadow":"0 14px 34px -26px rgba(20,21,26,.4)",
+      "--chipBg":"rgba(255,255,255,.7)","--dotGlow":"none",
+      "--btnBorder":"transparent","--btnGlow":"0 14px 30px -18px rgba(20,21,26,.5)",
+      "--btnSBg":"transparent","--cardShadow":"0 18px 44px -34px rgba(20,21,26,.42)",
+      "--cardSheen":"none",
+      "--iconGlow":"none",
+      "--inputBg":"rgba(20,21,26,.025)","--inputRing":"0 0 0 1px rgba(138,107,59,.45)",
+      "--footBg":"rgba(20,21,26,.02)","--accentText":"#8A6B3B",
+      "--accentStyle":"italic"
+    },
+    changes: ["Mode <b>terang</b>: kanvas lautan diganti kertas ivory + grain halus", "Aksen cyan → <b>kuningan (brass)</b>, tombol utama tinta hitam", "Judul <b>Fraunces</b>, aksen dicetak miring, garis sangat tipis", "Radius hampir tajam (3–4px), bayangan nyaris tak terlihat"],
+    keeps: ["Semua section, urutan, dan teks (termasuk Rules &amp; Notes)", "Komponen Kak Taksaka tetap read-only", "API, auth, database, dan Case ID <code>OSM-</code>"]
+  },
+  d: {
+    name: "Emerald Vault",
+    tagline: "Jewel tone — hijau zamrud tua dengan emas, kesan 'brankas'.",
+    refs: ["rolex.com", "harrods.com", "vertu.com", "berluti.com"],
+    palette: [["#04120E","Emerald abyss"],["#0A2019","Panel"],["#C8A24A","Gold"],["#E6D3A3","Highlight"],["#EAF3EE","Mint ink"]],
+    type: [["Playfair Display 600","display"],["Inter 400/500","body"]],
+    vars: {
+      "--bg0":"#04120E","--bg1":"#0A2019",
+      "--panel":"linear-gradient(180deg,rgba(230,211,163,.06),rgba(255,255,255,.015))","--panelSolid":"#07180F",
+      "--ink":"#EAF3EE","--inkMid":"#B6CDC0","--inkLo":"#7C9689",
+      "--accent":"#C8A24A","--accentInk":"#0A1509","--accentLine":"rgba(200,162,74,.34)","--accentSoft":"rgba(200,162,74,.1)",
+      "--line":"rgba(190,222,205,.13)","--radius":"8px","--radiusSm":"6px","--iconRadius":"6px","--markRadius":"5px","--chipRadius":"999px",
+      "--display":"'Playfair Display',serif","--displayWeight":"600","--displayTrack":"-.012em","--eyebrowTrack":".24em",
+      "--grad":"linear-gradient(135deg,#F2E2B4 0%,#C8A24A 48%,#9C7A2C 100%)",
+      "--ambient":"radial-gradient(56% 44% at 50% -8%,rgba(45,120,88,.28),transparent 66%),radial-gradient(42% 36% at 86% 106%,rgba(200,162,74,.1),transparent 70%),linear-gradient(180deg,#061A13,#04120E 58%,#030C09)",
+      "--grainOpacity":".05",
+      "--navBg":"rgba(5,18,14,.66)","--navShadow":"0 20px 46px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(230,211,163,.07)",
+      "--chipBg":"rgba(230,211,163,.05)","--dotGlow":"0 0 13px rgba(200,162,74,.85)",
+      "--btnBorder":"rgba(242,226,180,.45)","--btnGlow":"0 20px 46px -22px rgba(200,162,74,.65),inset 0 1px 0 rgba(255,255,255,.32)",
+      "--btnSBg":"rgba(230,211,163,.04)","--cardShadow":"0 28px 64px -42px rgba(0,0,0,1),inset 0 1px 0 rgba(230,211,163,.05)",
+      "--cardSheen":"linear-gradient(150deg,rgba(200,162,74,.08),transparent 44%)",
+      "--iconGlow":"0 10px 24px -12px rgba(200,162,74,.75)",
+      "--inputBg":"rgba(0,0,0,.28)","--inputRing":"0 0 0 1px rgba(200,162,74,.45)",
+      "--footBg":"rgba(230,211,163,.03)","--accentText":"#DDBE72"
+    },
+    changes: ["Canvas lautan diganti <b>zamrud gelap + kabut emas</b> (struktur canvas yang sama, warnanya ditukar)", "Aksen cyan → <b>emas tua</b> di atas hijau zamrud", "Judul <b>Playfair Display</b>, kartu radius 8px dengan garis emas tipis", "Paling dekat ke tema sekarang secara struktur — migrasi paling ringan"],
+    keeps: ["Semua section, urutan, dan teks (termasuk Rules &amp; Notes)", "Komponen Kak Taksaka tetap read-only", "API, auth, database, dan Case ID <code>OSM-</code>"]
+  }
+};
+
+const tpl = document.getElementById("mockTpl");
+
+function metaHtml(t){
+  const sw = t.palette.map(([c,n]) => `<div class="sw"><i style="background:${c}"></i>${c}<br>${n}</div>`).join("");
+  const ty = t.type.map(([f,r]) => `<div><b>${f}</b> · ${r}</div>`).join("");
+  const refs = t.refs.map(r => `<li><b>${r}</b></li>`).join("");
+  const ch = t.changes.map(c => `<li>${c}</li>`).join("");
+  const kp = t.keeps.map(k => `<li>${k}</li>`).join("");
+  return `
+    <div class="metaCard"><h4>${t.name}</h4><div class="spec">
+      <div class="display" style="font-family:${t.vars['--display']}">${t.tagline}</div></div></div>
+    <div class="metaCard"><h4>Referensi situs</h4><ul>${refs}</ul></div>
+    <div class="metaCard"><h4>Palet</h4><div class="swatches">${sw}</div></div>
+    <div class="metaCard"><h4>Tipografi</h4><div class="spec">${ty}</div></div>
+    <div class="metaCard" style="grid-column:1/-1"><h4>Yang berubah</h4><ul>${ch}</ul></div>
+    <div class="metaCard" style="grid-column:1/-1"><h4>Yang tetap tidak disentuh</h4><ul>${kp}</ul></div>`;
+}
+
+for (const [key, t] of Object.entries(THEMES)) {
+  const mock = document.querySelector(`.mock[data-theme="${key}"]`);
+  mock.appendChild(tpl.content.cloneNode(true));
+  for (const [p, v] of Object.entries(t.vars)) mock.style.setProperty(p, v);
+  document.querySelector(`[data-meta="${key}"]`).innerHTML = metaHtml(t);
+}
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === tab)));
+    document.querySelectorAll(".panel").forEach(p => p.dataset.open = String(p.dataset.panel === tab.dataset.target));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+</script>
+</body>
+</html>

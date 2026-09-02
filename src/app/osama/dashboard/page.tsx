@@ -62,7 +62,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       {/* ── Header ── */}
       <header className="dash-header" role="banner">
         <div className="dash-header__brand">
-          <div className="dash-header__logo" aria-hidden="true">💧</div>
+          <div className="dash-header__logo" aria-hidden="true">✦</div>
           <span className="dash-header__title">OSIS Ngobrol Yuk!</span>
         </div>
         <div className="dash-header__actions">

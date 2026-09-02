@@ -1,71 +1,73 @@
 /* ═══════════════════════════════════════════════════════════════════
-   OSIS Ngobrol Yuk — design system (V6)
-   Deep-ocean identity, premium & restrained.
+   OSIS Ngobrol Yuk — design system (V8)
+   Obsidian Platinum: near-black surfaces, platinum metal accents,
+   hairline edges, restrained motion. Luxury-tech, not neon.
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: dark;
 
-  /* ── Color · ocean scale ───────────────────────────────────────── */
-  --bg-0: #030d14; /* abyss bottom */
-  --bg-1: #061724;
-  --bg-2: #0a2232; /* raised surface */
-  --bg-3: #0e2b3e;
+  /* ── Color · obsidian scale ────────────────────────────────────── */
+  --bg-0: #040507; /* deepest ground */
+  --bg-1: #07080c;
+  --bg-2: #0b0d12; /* raised surface */
+  --bg-3: #101319;
 
-  --surface: rgba(10, 32, 47, 0.9); /* panels */
-  --surface-strong: #0c2435; /* solid panel */
-  --surface-soft: rgba(14, 40, 57, 0.55); /* list rows, inputs */
-  --surface-hover: rgba(21, 51, 71, 0.6);
+  --surface: rgba(11, 13, 18, 0.86); /* panels */
+  --surface-strong: #0c0e13; /* solid panel */
+  --surface-soft: rgba(18, 21, 28, 0.6); /* list rows, inputs */
+  --surface-hover: rgba(26, 30, 39, 0.66);
 
   /* ── Color · ink ───────────────────────────────────────────────── */
-  --ink-hi: #eef9ff;
-  --ink-mid: #b6d3e4;
-  --ink-lo: #7fa3b8;
-  --ink-faint: #4f7086;
+  --ink-hi: #f4f6fa;
+  --ink-mid: #b7beca;
+  --ink-lo: #7e8695;
+  --ink-faint: #5a616e;
 
-  /* ── Color · accent (lagoon cyan) ─────────────────────────────── */
-  --accent: #55d7f2;
-  --accent-strong: #2fb9e0;
-  --accent-deep: #0e6f97;
-  --accent-ink: #03222f;
-  --accent-soft: rgba(85, 215, 242, 0.1);
-  --accent-line: rgba(85, 215, 242, 0.28);
+  /* ── Color · accent (platinum) ────────────────────────────────── */
+  --accent: #d9dfe8;
+  --accent-strong: #a8b2c1;
+  --accent-deep: #6e7787;
+  --accent-ink: #07080b;
+  --accent-soft: rgba(217, 223, 232, 0.09);
+  --accent-line: rgba(217, 223, 232, 0.26);
 
   /* ── Color · accent gradients & glow ──────────────────────────── */
-  --grad-accent: linear-gradient(135deg, #8cf0ff 0%, #55d7f2 38%, #2fb9e0 78%, #1c9fd0 100%);
-  --grad-accent-soft: linear-gradient(135deg, rgba(140, 240, 255, 0.16), rgba(85, 215, 242, 0.05));
-  --grad-caution: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(85, 215, 242, 0.03));
-  --glow-accent: 0 0 22px rgba(85, 215, 242, 0.32);
-  --glow-accent-lg: 0 24px 60px -18px rgba(47, 185, 224, 0.72), 0 0 0 1px rgba(85, 215, 242, 0.06);
-
+  --grad-accent: linear-gradient(135deg, #ffffff 0%, #eef1f6 26%, #c3cbd8 58%, #98a2b2 84%, #6e7787 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(217, 223, 232, 0.03));
+  --grad-caution: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(217, 223, 232, 0.02));
+  --grad-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.07), transparent 46%);
+  --grad-hairline: linear-gradient(90deg, transparent, rgba(217, 223, 232, 0.3), transparent);
+  --glow-accent: 0 0 22px rgba(217, 223, 232, 0.22);
+  --glow-accent-lg: 0 24px 60px -22px rgba(190, 204, 228, 0.5), 0 0 0 1px rgba(217, 223, 232, 0.06);
 
   /* ── Color · status ───────────────────────────────────────────── */
-  --info: #55d7f2;
-  --warn: #f4c46f;
-  --success: #69dfa3;
-  --success-deep: #0c2f22;
-  --danger: #ff8296;
-  --danger-deep: #3a1220;
-  --archived: #7fa3b8;
+  --info: #8aa6d6;
+  --warn: #e8c07a;
+  --success: #74d8a8;
+  --success-deep: #0e2a20;
+  --danger: #ff98a8;
+  --danger-deep: #2a1219;
+  --archived: #7e8695;
 
   /* ── Color · lines ────────────────────────────────────────────── */
-  --line: rgba(150, 210, 235, 0.14);
-  --line-strong: rgba(150, 210, 235, 0.28);
+  --line: rgba(226, 232, 240, 0.1);
+  --line-strong: rgba(226, 232, 240, 0.2);
 
   /* ── Radius ───────────────────────────────────────────────────── */
-  --r-xs: 8px;
+  --r-xs: 6px;
   --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-xl: 24px;
+  --r-md: 13px;
+  --r-lg: 16px;
+  --r-xl: 20px;
   --r-full: 999px;
 
   /* ── Elevation ────────────────────────────────────────────────── */
-  --shadow-sm: 0 1px 2px rgba(1, 6, 10, 0.4);
-  --shadow-md: 0 16px 40px -16px rgba(1, 6, 10, 0.66);
-  --shadow-lg: 0 34px 74px -24px rgba(1, 6, 10, 0.82);
-  --shadow-card: 0 30px 70px -34px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --ring: 0 0 0 2px rgba(85, 215, 242, 0.55), 0 0 22px rgba(85, 215, 242, 0.18);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 16px 40px -18px rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 34px 74px -26px rgba(0, 0, 0, 0.9);
+  --shadow-card: 0 30px 70px -38px rgba(0, 0, 0, 1), inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  --ring: 0 0 0 2px rgba(217, 223, 232, 0.5), 0 0 22px rgba(217, 223, 232, 0.14);
 
   /* ── Motion ───────────────────────────────────────────────────── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -78,6 +80,8 @@
     "Segoe UI", sans-serif;
   --font-body: var(--font-body), ui-sans-serif, system-ui,
     "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --track-display: -0.038em;
+  --track-eyebrow: 0.18em;
 }
 
 *,
@@ -96,8 +100,12 @@ body {
   padding: 0;
   min-height: 100%;
   min-height: 100dvh;
+  /* Obsidian ground: near-black with a cold specular wash up top and a
+     faint steel bloom low-right, so surfaces read as brushed metal. */
   background:
-    radial-gradient(120% 90% at 50% -10%, #0c2a3d 0%, #08202f 34%, #041420 68%, #030d14 100%)
+    radial-gradient(64% 46% at 50% -8%, #12151d 0%, transparent 62%),
+    radial-gradient(46% 38% at 90% 104%, #0d1119 0%, transparent 68%),
+    linear-gradient(180deg, #0a0c11 0%, #06070a 56%, #040507 100%)
     fixed;
   color: var(--ink-hi);
   font-family: var(--font-body);
@@ -115,7 +123,7 @@ h3,
 h4 {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--track-display);
 }
 
 img,
@@ -137,7 +145,7 @@ a {
 }
 
 ::selection {
-  background: rgba(85, 215, 242, 0.34);
+  background: rgba(217, 223, 232, 0.26);
   color: var(--ink-hi);
 }
 
@@ -192,6 +200,34 @@ section[id] {
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Slim, quiet scrollbars — a bright default scrollbar reads cheap
+   against an obsidian surface. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 223, 232, 0.18) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(217, 223, 232, 0.16);
+  border: 3px solid transparent;
+  border-radius: var(--r-full);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 223, 232, 0.28);
+  background-clip: content-box;
 }
 
 @media (prefers-reduced-motion: reduce) {
